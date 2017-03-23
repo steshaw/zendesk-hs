@@ -20,8 +20,8 @@ users = [ User 1 "Isaac" "Newton"
         ]
 
 exampleTickets =
-  [ Ticket { ticketId = 1 }
-  , Ticket { ticketId = 2 }
+  [ Ticket { ticketId = Just 1 }
+  , Ticket { ticketId = Just 2 }
   ]
 
 ticketPage = TicketPage

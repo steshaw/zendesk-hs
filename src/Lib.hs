@@ -48,7 +48,7 @@ type PrivateAPI = Get '[JSON] PrivateData
 type UsersAPI = "users" :> Get '[JSON] [User]
 
 data Ticket = Ticket
-  { ticketId :: Int64
+  { ticketId :: Maybe Int64
   }
   deriving Show
 

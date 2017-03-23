@@ -20,7 +20,6 @@ getTickets :: BasicAuthData -> ClientM TicketPage
 
 runner :: BaseUrl -> BS.ByteString -> BS.ByteString -> (BasicAuthData -> ClientM a) -> IO (Either ServantError a)
 runner baseUrl username password authenticatedAction = do
---  manager <- HttpClient.newManager HttpClient.defaultManagerSettings
   manager <- HttpClient.newManager TLS.tlsManagerSettings
   let basicAuthData = BasicAuthData username password
   runClientM (authenticatedAction basicAuthData) (ClientEnv manager baseUrl)
