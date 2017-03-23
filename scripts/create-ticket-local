@@ -2,14 +2,12 @@
 
 set -eu
 
-subdomain="${ZENDESK_SUBDOMAIN}"
-username="${ZENDESK_USERNAME}"
-password="${ZENDESK_PASSWORD}"
+auth="${ZENDESK_AUTH:-fred:password}"
 
 http \
   --verbose \
-  --auth "${username}:${password}" \
-  POST "https://${subdomain}.zendesk.com/api/v2/tickets.json" \
+  --auth "${auth}" \
+  POST :8080/tickets.json \
   'Content-Type:application/json' \
   'Accept:application/json' \
   <<!

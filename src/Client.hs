@@ -1,6 +1,6 @@
 module Client where
 
-import Lib (api, PublicData, User, PrivateData, TicketPage)
+import Lib
 
 import qualified Data.ByteString as BS
 import qualified Network.HTTP.Client as HttpClient
@@ -12,11 +12,14 @@ getPublic :: ClientM [PublicData]
 getUsers :: ClientM [User]
 getPrivate :: BasicAuthData -> ClientM PrivateData
 getTickets :: BasicAuthData -> ClientM TicketPage
+createTicket :: BasicAuthData -> TicketCreate -> ClientM TicketCreateResponse
 
-(getPublic :<|>
- getUsers :<|>
- getPrivate :<|>
- getTickets) = client api
+(getPublic
+  :<|> getUsers
+  :<|> getPrivate
+  :<|> getTickets
+  :<|> createTicket
+  ) = client api
 
 runner :: BaseUrl -> BS.ByteString -> BS.ByteString -> (BasicAuthData -> ClientM a) -> IO (Either ServantError a)
 runner baseUrl username password authenticatedAction = do

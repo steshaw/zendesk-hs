@@ -19,20 +19,21 @@ users = [ User 1 "Isaac" "Newton"
         , fred
         ]
 
-exampleTickets =
-  [ Ticket
-    { ticketId = Just 1
-    , ticketUrl = Nothing
-    , ticketSubject = Just "This is a subject"
-    , ticketDescription = Just "This is a description"
-    }
-  , Ticket
-    { ticketId = Just 2
-    , ticketUrl = Nothing
-    , ticketSubject = Just "This is another subject"
-    , ticketDescription = Just "This is another description"
-    }
-  ]
+ticket1 = Ticket
+  { ticketId = Just 1
+  , ticketUrl = Nothing
+  , ticketSubject = Just "This is a subject"
+  , ticketDescription = Just "This is a description"
+  }
+
+ticket2 = Ticket
+  { ticketId = Just 2
+  , ticketUrl = Nothing
+  , ticketSubject = Just "This is another subject"
+  , ticketDescription = Just "This is another description"
+  }
+
+exampleTickets = [ticket1, ticket2]
 
 ticketPage = TicketPage
   { ticketCount = length exampleTickets
@@ -64,16 +65,18 @@ basicAuthServerContext = authCheck :. EmptyContext
 -- to supply a function that takes 'User' as an argument.
 basicAuthServer :: Server API
 basicAuthServer =
-  let publicAPIHandler = return [PublicData "foo", PublicData "bar"]
-      usersHandler = return users
-      privateAPIHandler (user :: User) = return (PrivateData {
+  let getPublic = return [PublicData "foo", PublicData "bar"]
+      getUsers = return users
+      getPrivate (user :: User) = return (PrivateData {
         shh = Text.pack (show user)
       })
-      ticketsHandler user = return ticketPage
-  in publicAPIHandler
-       :<|> usersHandler
-       :<|> privateAPIHandler
-       :<|> ticketsHandler
+      getTickets user = return ticketPage
+      postTicket user ticketCreate = return (TicketCreateResponse (Just 0))
+  in     getPublic
+    :<|> getUsers
+    :<|> getPrivate
+    :<|> getTickets
+    :<|> postTicket
 
 server :: Server API
 server = basicAuthServer

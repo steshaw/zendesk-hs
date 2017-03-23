@@ -56,19 +56,19 @@ data TicketStatus = New | Open | Pending | Hold | Solved | Closed
 data TicketPriority = Urgent | High | Normal | Low
 
 data TicketCommentCreate = TicketCommentCreate
-  { tcc_body :: Maybe Text
-  , tcc_htmlBody :: Maybe Text
-  , tcc_public :: Maybe Bool
-  , tcc_authorId :: Maybe Id
+  { ticketCommentCreate_body :: Maybe Text
+  , ticketCommentCreate_htmlBody :: Maybe Text
+  , ticketCommentCreate_public :: Maybe Bool
+  , ticketCommentCreate_authorId :: Maybe Id
   }
   deriving (Show)
 
 instance ToJSON TicketCommentCreate where
   toJSON comment = object
-    [ "body" .= tcc_body comment
-    , "html_body" .= tcc_htmlBody comment
-    , "public" .= tcc_public comment
-    , "author_id" .= tcc_authorId comment
+    [ "body" .= ticketCommentCreate_body comment
+    , "html_body" .= ticketCommentCreate_htmlBody comment
+    , "public" .= ticketCommentCreate_public comment
+    , "author_id" .= ticketCommentCreate_authorId comment
     ]
 
 instance FromJSON TicketCommentCreate where
@@ -94,14 +94,26 @@ data TicketComment = TicketComment
   }
 
 data TicketCreate = TicketCreate
-  { ticketCreateId :: Maybe Id
-  , ticketCreateSubject :: Maybe Text
+  { ticketCreateSubject :: Maybe Text
   , ticketCreateComment :: TicketCommentCreate
 -- requester_id	The numeric ID of the user asking for support through the ticket
 -- submitter_id	The numeric ID of the user submitting the ticket
 -- assignee_id	The numeric ID of the agent to assign the ticket to
 -- group_id	The numeric ID of the group to assign the ticket to
   }
+
+instance ToJSON TicketCreate where
+  toJSON ticket = object
+    [ "ticket" .= object
+      [ "subject" .= ticketCreateSubject ticket
+      , "comment" .= ticketCreateComment ticket
+      ]
+    ]
+
+instance FromJSON TicketCreate where
+  parseJSON = withObject "TicketCreate" $ \ticket -> TicketCreate
+    <$> ticket .: "subject"
+    <*> ticket .: "comment"
 
 data Ticket = Ticket
   { ticketId :: Maybe Id
@@ -238,13 +250,28 @@ instance FromJSON TicketPage where
   ]
 -}
 
-type TicketsAPI = "tickets" :> Get '[JSON] TicketPage
+data TicketCreateResponse = TicketCreateResponse
+  { status :: Maybe Int } -- XXX: replace with real result audit/ticket.
+  deriving (Eq, Show, Generic)
+
+instance ToJSON TicketCreateResponse
+instance FromJSON TicketCreateResponse
+
+type Authed = BasicAuth "protected-realm" User
+
+type GetTickets = "tickets.json" :> Get '[JSON] TicketPage
+
+type PostTicket =
+  "tickets.json"
+  :> ReqBody '[JSON] TicketCreate
+  :> Post '[JSON] TicketCreateResponse
 
 type API
     = "public"  :> PublicAPI
  :<|> UsersAPI
  :<|> "private" :> BasicAuth "protected-realm" User :> PrivateAPI
- :<|> BasicAuth "protected-realm" User :> TicketsAPI
+ :<|> Authed :> GetTickets
+ :<|> Authed :> PostTicket
 
 api :: Proxy API
 api = Proxy

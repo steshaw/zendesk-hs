@@ -15,6 +15,7 @@ library:
   source-dirs: src
   exposed-modules:
     - Lib
+    - Client
     - Server
   dependencies:
     - base >=4.7 && <5
@@ -47,6 +48,7 @@ tests:
       - base
       - zendesk
       - aeson
+      - bytestring
       - hspec
       - hspec-wai
       - hspec-wai-json
