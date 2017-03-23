@@ -41,7 +41,7 @@ tests:
     dependencies:
       - base
       - zendesk
+      - aeson
       - hspec
       - hspec-wai
       - hspec-wai-json
-      - aeson
