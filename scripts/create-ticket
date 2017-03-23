@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -eu
+
+subdomain="${ZENDESK_SUBDOMAIN}"
+email="${ZENDESK_EMAIL}"
+password="${ZENDESK_PASSWORD}"
+
+http \
+  --verbose \
+  --auth "${email}:${password}" \
+  "https://${subdomain}.zendesk.com/api/v2/tickets.json" \
+  'Content-Type:application/json' \
+  'Accept:application/json' \
+  <<!
+{
+  "ticket": {
+    "subject": "My printer is on fire!",
+    "comment": {
+      "body": "The smoke is very colorful."
+    }
+}
+!

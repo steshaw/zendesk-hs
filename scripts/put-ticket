@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -eu
+
+subdomain="${ZENDESK_SUBDOMAIN}"
+email="${ZENDESK_EMAIL}"
+password="${ZENDESK_PASSWORD}"
+id=6
+
+set -x
+
+http \
+  --verbose \
+  --auth "${email}:${password}" \
+  PUT \
+  "https://${subdomain}.zendesk.com/api/v2/tickets/${id}.json" \
+  'Content-Type:application/json' \
+  'Accept:application/json' \
+  <<!
+{
+  "ticket": {
+    "status": "open",
+    "comment": {
+      "body": "Another comment at $(date)."
+    }
+}
+!
