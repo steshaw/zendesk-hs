@@ -63,13 +63,21 @@ data TicketCommentCreate = TicketCommentCreate
   }
   deriving (Show)
 
+consMaybe fieldName = maybe id ((:) . (fieldName .=))
+
 instance ToJSON TicketCommentCreate where
-  toJSON comment = object
-    [ "body" .= ticketCommentCreate_body comment
-    , "html_body" .= ticketCommentCreate_htmlBody comment
-    , "public" .= ticketCommentCreate_public comment
-    , "author_id" .= ticketCommentCreate_authorId comment
-    ]
+  toJSON comment = object fields
+    -- [ "body" .= ticketCommentCreate_body comment
+    -- , "html_body" .= ticketCommentCreate_htmlBody comment
+    -- , "public" .= ticketCommentCreate_public comment
+    -- , "author_id" .= ticketCommentCreate_authorId comment
+    -- ]
+    where
+      conss = consMaybe "body" (ticketCommentCreate_body comment)
+            . consMaybe "html_body" (ticketCommentCreate_htmlBody comment)
+            . consMaybe "public" (ticketCommentCreate_public comment)
+            . consMaybe "author_id" (ticketCommentCreate_authorId comment)
+      fields = conss []
 
 instance FromJSON TicketCommentCreate where
   parseJSON = withObject "TicketCommentCreate" $ \comment -> TicketCommentCreate
@@ -104,11 +112,14 @@ data TicketCreate = TicketCreate
 
 instance ToJSON TicketCreate where
   toJSON ticket = object
-    [ "ticket" .= object
-      [ "subject" .= ticketCreateSubject ticket
-      , "comment" .= ticketCreateComment ticket
-      ]
+    [ "ticket" .= object fields
+      -- [ "subject" .= ticketCreateSubject ticket
+      -- , "comment" .= ticketCreateComment ticket
+      -- ]
     ]
+    where
+      conss = consMaybe "subject" (ticketCreateSubject ticket)
+      fields = conss ["comment" .= (ticketCreateComment ticket)]
 
 instance FromJSON TicketCreate where
   parseJSON = withObject "TicketCreate" $ \wrapper -> do

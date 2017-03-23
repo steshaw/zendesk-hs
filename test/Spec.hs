@@ -46,12 +46,21 @@ spec = with (return app) $ do
 spec2 :: Spec
 spec2 =
   describe "POST /tickets.json" $ do
-    it "responds with 401" $ do
+    it "responds okay with a subject" $ do
       subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
       username <- Env.getEnv "ZENDESK_USERNAME"
       password <- Env.getEnv "ZENDESK_PASSWORD"
       let ticketCommentCreate = TicketCommentCreate (Just "A body") Nothing Nothing Nothing
       let ticketCreate = TicketCreate (Just "A subject") ticketCommentCreate
+      run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticketCreate)
+        `shouldReturn` Right (TicketCreateResponse Nothing)
+      -- XXX: Underlying HTTP response code should be 401/Created.
+    it "responds okay without a subject" $ do
+      subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
+      username <- Env.getEnv "ZENDESK_USERNAME"
+      password <- Env.getEnv "ZENDESK_PASSWORD"
+      let ticketCommentCreate = TicketCommentCreate (Just "A body") Nothing Nothing Nothing
+      let ticketCreate = TicketCreate Nothing ticketCommentCreate
       run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticketCreate)
         `shouldReturn` Right (TicketCreateResponse Nothing)
       -- XXX: Underlying HTTP response code should be 401/Created.
