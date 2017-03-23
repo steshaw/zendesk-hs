@@ -25,6 +25,7 @@ library:
     - servant-client
     - servant-server
     - text
+    - time
     - wai
     - warp
 

@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -11,10 +12,8 @@ import Data.Aeson
 import Data.Aeson.TH
 import Data.Int (Int64)
 import Data.Text (Text)
-import qualified Data.Text as Text
+import Data.Time.Clock (UTCTime)
 import GHC.Generics (Generic)
-import Network.Wai
-import Network.Wai.Handler.Warp
 import Servant
 
 data User = User
@@ -42,24 +41,83 @@ instance FromJSON PrivateData
 -- | A type to wrap our public API.
 type PublicAPI = Get '[JSON] [PublicData]
 
+type Id = Int64
+
+type Date = UTCTime
+
 -- | A type to wrap our private API.
 type PrivateAPI = Get '[JSON] PrivateData
 
 type UsersAPI = "users" :> Get '[JSON] [User]
 
+data TicketType = Problem | Incident | Question | Task
+
+data TicketStatus = New | Open | Pending | Hold | Solved | Closed
+
+data TicketPriority = Urgent | High | Normal | Low
+
+data TicketCommentCreate = TicketCommentCreate
+  { tcc_body :: Maybe Text
+  , tcc_htmlBody :: Maybe Text
+  , tcc_public :: Maybe Bool
+  , tcc_authorId :: Maybe Id
+  }
+  deriving (Show)
+
+instance ToJSON TicketCommentCreate where
+  toJSON comment = object
+    [ "body" .= tcc_body comment
+    , "html_body" .= tcc_htmlBody comment
+    , "public" .= tcc_public comment
+    , "author_id" .= tcc_authorId comment
+    ]
+
+instance FromJSON TicketCommentCreate where
+  parseJSON = withObject "TicketCommentCreate" $ \comment -> TicketCommentCreate
+    <$> comment .: "body"
+    <*> comment .: "html_body"
+    <*> comment .: "public"
+    <*> comment .: "author_id"
+
+data TicketCommentType = Comment | VoiceComment
+
+data TicketComment = TicketComment
+  { ticketCommentId :: Id
+  , body :: Text
+  , htmlBody :: Text
+  , plainBody :: Text
+  , public :: Bool
+  , authorId :: Id
+-- attachments	array	yes	Attachments, if any. See Attachment
+-- via	object	yes	How the comment was created. See Via Object
+-- metadata	object	yes	System information (web client, IP address, etc.)
+  , createdAt :: Date
+  }
+
 data Ticket = Ticket
-  { ticketId :: Maybe Int64
+  { ticketId :: Maybe Id
+  , subject :: Text -- XXX: Probably should be optional.
+  , comment :: TicketCommentCreate
+-- comment	Required. A comment object that describes the problem, incident, question, or task. See Ticket comments
+-- requester_id	The numeric ID of the user asking for support through the ticket
+-- submitter_id	The numeric ID of the user submitting the ticket
+-- assignee_id	The numeric ID of the agent to assign the ticket to
+-- group_id	The numeric ID of the group to assign the ticket to
   }
   deriving Show
 
 instance ToJSON Ticket where
   toJSON ticket = object
     [ "id" .= ticketId ticket
+    , "subject" .= subject ticket
+    , "comment" .= comment ticket
     ]
 
 instance FromJSON Ticket where
   parseJSON = withObject "Ticket" $ \ticket -> Ticket
     <$> ticket .: "id"
+    <*> ticket .: "subject"
+    <*> ticket .: "comment"
 
 data TicketPage = TicketPage
   { ticketCount :: Int

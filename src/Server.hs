@@ -20,8 +20,26 @@ users = [ User 1 "Isaac" "Newton"
         ]
 
 exampleTickets =
-  [ Ticket { ticketId = Just 1 }
-  , Ticket { ticketId = Just 2 }
+  [ Ticket
+    { ticketId = Just 1
+    , subject = "This is a subject"
+    , comment = TicketCommentCreate
+      { tcc_body = Just "This is a body"
+      , tcc_htmlBody = Nothing
+      , tcc_public = Nothing
+      , tcc_authorId = Nothing
+      }
+    }
+  , Ticket
+    { ticketId = Just 2
+    , subject = "Another subject"
+    , comment = TicketCommentCreate
+      { tcc_body = Just "This is another body"
+      , tcc_htmlBody = Nothing
+      , tcc_public = Nothing
+      , tcc_authorId = Nothing
+      }
+    }
   ]
 
 ticketPage = TicketPage
