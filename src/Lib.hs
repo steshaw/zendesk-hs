@@ -73,10 +73,10 @@ instance ToJSON TicketCommentCreate where
 
 instance FromJSON TicketCommentCreate where
   parseJSON = withObject "TicketCommentCreate" $ \comment -> TicketCommentCreate
-    <$> comment .: "body"
-    <*> comment .: "html_body"
-    <*> comment .: "public"
-    <*> comment .: "author_id"
+    <$> comment .:? "body"
+    <*> comment .:? "html_body"
+    <*> comment .:? "public"
+    <*> comment .:? "author_id"
 
 data TicketCommentType = Comment | VoiceComment
 
@@ -111,9 +111,14 @@ instance ToJSON TicketCreate where
     ]
 
 instance FromJSON TicketCreate where
-  parseJSON = withObject "TicketCreate" $ \ticket -> TicketCreate
-    <$> ticket .: "subject"
-    <*> ticket .: "comment"
+  parseJSON = withObject "TicketCreate" $ \wrapper -> do
+    ticket <- wrapper .: "ticket"
+    subject <- ticket .: "subject"
+    comment <- ticket .: "comment"
+    return $ TicketCreate
+      { ticketCreateSubject = subject
+      , ticketCreateComment = comment
+      }
 
 data Ticket = Ticket
   { ticketId :: Maybe Id
