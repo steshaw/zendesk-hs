@@ -22,23 +22,15 @@ users = [ User 1 "Isaac" "Newton"
 exampleTickets =
   [ Ticket
     { ticketId = Just 1
-    , subject = "This is a subject"
-    , comment = TicketCommentCreate
-      { tcc_body = Just "This is a body"
-      , tcc_htmlBody = Nothing
-      , tcc_public = Nothing
-      , tcc_authorId = Nothing
-      }
+    , ticketUrl = Nothing
+    , ticketSubject = Just "This is a subject"
+    , ticketDescription = Just "This is a description"
     }
   , Ticket
     { ticketId = Just 2
-    , subject = "Another subject"
-    , comment = TicketCommentCreate
-      { tcc_body = Just "This is another body"
-      , tcc_htmlBody = Nothing
-      , tcc_public = Nothing
-      , tcc_authorId = Nothing
-      }
+    , ticketUrl = Nothing
+    , ticketSubject = Just "This is another subject"
+    , ticketDescription = Just "This is another description"
     }
   ]
 

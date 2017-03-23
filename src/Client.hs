@@ -25,7 +25,7 @@ runner baseUrl username password authenticatedAction = do
   runClientM (authenticatedAction basicAuthData) (ClientEnv manager baseUrl)
 
 localBaseUrl = BaseUrl Http "localhost" 8080 ""
-baseUrl subdomain = BaseUrl Https (subdomain ++ ".zendesk.com") 443 "/api/v2"
+zendeskBaseUrl subdomain = BaseUrl Https (subdomain ++ ".zendesk.com") 443 "/api/v2"
 
 runLocal = runner localBaseUrl
-run subdomain = runner (baseUrl subdomain)
+run subdomain = runner (zendeskBaseUrl subdomain)

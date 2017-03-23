@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -94,30 +93,73 @@ data TicketComment = TicketComment
   , createdAt :: Date
   }
 
-data Ticket = Ticket
-  { ticketId :: Maybe Id
-  , subject :: Text -- XXX: Probably should be optional.
-  , comment :: TicketCommentCreate
--- comment	Required. A comment object that describes the problem, incident, question, or task. See Ticket comments
+data TicketCreate = TicketCreate
+  { ticketCreateId :: Maybe Id
+  , ticketCreateSubject :: Maybe Text
+  , ticketCreateComment :: TicketCommentCreate
 -- requester_id	The numeric ID of the user asking for support through the ticket
 -- submitter_id	The numeric ID of the user submitting the ticket
 -- assignee_id	The numeric ID of the agent to assign the ticket to
 -- group_id	The numeric ID of the group to assign the ticket to
+  }
+
+data Ticket = Ticket
+  { ticketId :: Maybe Id
+  , ticketUrl :: Maybe Text -- XXX: URL
+  , ticketSubject :: Maybe Text -- XXX: Probably should be optional.
+  , ticketDescription :: Maybe Text
+
+--   Name	Type	Read-only	Mandatory	Comment
+-- id	integer	yes	no	Automatically assigned when creating tickets
+-- url	string	yes	no	The API url of this ticket
+-- external_id	string	no	no	An id you can use to link Zendesk Support tickets to local records
+-- type	string	no	no	The type of this ticket, i.e. "problem", "incident", "question" or "task"
+-- subject	string	no	no	The value of the subject field for this ticket
+-- raw_subject	string	no	no	The dynamic content placeholder, if present, or the "subject" value, if not. See Dynamic Content
+-- description	string	yes	no	The first comment on the ticket
+-- priority	string	no	no	Priority, defines the urgency with which the ticket should be addressed: "urgent", "high", "normal", "low"
+-- status	string	no	no	The state of the ticket, "new", "open", "pending", "hold", "solved", "closed"
+-- recipient	string	no	no	The original recipient e-mail address of the ticket
+-- requester_id	integer	no	yes	The user who requested this ticket
+-- submitter_id	integer	no	no	The user who submitted the ticket; The submitter always becomes the author of the first comment on the ticket.
+-- assignee_id	integer	no	no	What agent is currently assigned to the ticket
+-- organization_id	integer	no	no	The organization of the requester. You can only specify the ID of an organization associated with the requester. See Organization Memberships
+-- group_id	integer	no	no	The group this ticket is assigned to
+-- collaborator_ids	array	no	no	Who are currently CC'ed on the ticket
+-- forum_topic_id	integer	no	no	The topic this ticket originated from, if any
+-- problem_id	integer	no	no	The problem this incident is linked to, if any
+-- has_incidents	boolean	yes	no	Is true of this ticket has been marked as a problem, false otherwise
+-- due_at	date	no	no	If this is a ticket of type "task" it has a due date. Due date format uses ISO 8601 format.
+-- tags	array	no	no	The array of tags applied to this ticket
+-- via	Via	yes	no	This object explains how the ticket was created
+-- custom_fields	array	no	no	The custom fields of the ticket
+-- satisfaction_rating	object	yes	no	The satisfaction rating of the ticket, if it exists, or the state of satisfaction, 'offered' or 'unoffered'
+-- sharing_agreement_ids	array	yes	no	The ids of the sharing agreements used for this ticket
+-- followup_ids	array	yes	no	The ids of the followups created from this ticket - only applicable for closed tickets
+-- ticket_form_id	integer	no	no	The id of the ticket form to render for this ticket - only applicable for enterprise accounts
+-- brand_id	integer	no	no	The id of the brand this ticket is associated with - only applicable for enterprise accounts
+-- allow_channelback	boolean	yes	no	Is false if channelback is disabled, true otherwise - only applicable for channels framework ticket
+-- is_public	boolean	yes	no	Is true if any comments are public, false otherwise
+-- created_at	date	yes	no	When this record was created
+-- updated_at	date	yes	no	When this record last got updated
   }
   deriving Show
 
 instance ToJSON Ticket where
   toJSON ticket = object
     [ "id" .= ticketId ticket
-    , "subject" .= subject ticket
-    , "comment" .= comment ticket
+    , "url" .= ticketUrl ticket
+    , "subject" .= ticketSubject ticket
+    , "description" .= ticketDescription ticket
     ]
 
 instance FromJSON Ticket where
+  -- XXX: Probably change this to record syntax (instead of applicative).
   parseJSON = withObject "Ticket" $ \ticket -> Ticket
     <$> ticket .: "id"
+    <*> ticket .: "url"
     <*> ticket .: "subject"
-    <*> ticket .: "comment"
+    <*> ticket .: "description"
 
 data TicketPage = TicketPage
   { ticketCount :: Int
