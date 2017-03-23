@@ -25,7 +25,7 @@ exampleTickets =
   ]
 
 ticketPage = TicketPage
-  { ticketCount = 1
+  { ticketCount = length exampleTickets
   , ticketNextPage = Nothing
   , ticketPrevPage = Nothing
   , tickets = exampleTickets
