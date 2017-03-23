@@ -13,13 +13,7 @@ import Test.Hspec.Wai.JSON (json)
 main :: IO ()
 main = hspec spec
 
-spec :: Spec
-spec = with (return app) $ do
-    describe "GET /users" $ do
-        it "responds with 200" $ do
-            get "/users" `shouldRespondWith` 200
-        it "responds with [User]" $ do
-            let users = [json|
+users = [json|
   [
     {
       "userId": 1,
@@ -38,4 +32,11 @@ spec = with (return app) $ do
     }
   ]
 |]
+
+spec :: Spec
+spec = with (return app) $ do
+    describe "GET /users" $ do
+        it "responds with 200" $ do
+            get "/users" `shouldRespondWith` 200
+        it "responds with [User]" $ do
             get "/users" `shouldRespondWith` users
