@@ -11,6 +11,26 @@ import qualified Data.Text as Text
 import qualified Network.Wai.Handler.Warp as Warp
 import Servant
 
+fred = User 3 "Fred" "Flintstone"
+
+users :: [User]
+users = [ User 1 "Isaac" "Newton"
+        , User 2 "Albert" "Einstein"
+        , fred
+        ]
+
+exampleTickets =
+  [ Ticket { ticketId = 1 }
+  , Ticket { ticketId = 2 }
+  ]
+
+ticketPage = TicketPage
+  { ticketCount = 1
+  , ticketNextPage = Nothing
+  , ticketPrevPage = Nothing
+  , tickets = exampleTickets
+  }
+
 -- | 'BasicAuthCheck' holds the handler we'll use to verify a username and password.
 authCheck :: BasicAuthCheck User
 authCheck =
@@ -28,9 +48,6 @@ authCheck =
 basicAuthServerContext :: Context (BasicAuthCheck User ': '[])
 basicAuthServerContext = authCheck :. EmptyContext
 
-api :: Proxy API
-api = Proxy
-
 -- |
 -- An implementation of our server. Here is where we pass all the handlers to
 -- our endpoints. In particular, for the BasicAuth protected handler, we need
@@ -42,7 +59,11 @@ basicAuthServer =
       privateAPIHandler (user :: User) = return (PrivateData {
         shh = Text.pack (show user)
       })
-  in publicAPIHandler :<|> usersHandler :<|> privateAPIHandler
+      ticketsHandler user = return ticketPage
+  in publicAPIHandler
+       :<|> usersHandler
+       :<|> privateAPIHandler
+       :<|> ticketsHandler
 
 server :: Server API
 server = basicAuthServer
