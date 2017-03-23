@@ -1,0 +1,45 @@
+name: zendesk
+version: 0.1.0.0
+category: Web
+synopsis: Library for accessing the Zendesk REST API
+description: See README at <https://github.com/steshaw/zendesk#readme>
+author: Steven Shaw
+maintainer: steven@steshaw.org
+copyright: (c) 2017, Steven Shaw
+license: BSD3
+github: steshaw/zendesk
+extra-source-files:
+  - README.md
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - Lib
+  dependencies:
+    - base >=4.7 && <5
+    - aeson
+    - servant-server
+    - wai
+    - warp
+
+executables:
+  zendesk:
+    main: Main.hs
+    source-dirs: app
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    dependencies:
+      - base
+      - zendesk
+
+tests:
+  zendesk-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    dependencies:
+      - base
+      - zendesk
+      - hspec
+      - hspec-wai
+      - hspec-wai-json
+      - aeson
