@@ -7,7 +7,6 @@ email="${ZENDESK_EMAIL}"
 password="${ZENDESK_PASSWORD}"
 
 http \
-  --verbose \
   --auth "${email}:${password}" \
   GET "https://${subdomain}.zendesk.com/api/v2/tickets.json" \
   "Accept:application/json"

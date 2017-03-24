@@ -6,8 +6,16 @@ subdomain="${ZENDESK_SUBDOMAIN}"
 email="${ZENDESK_EMAIL}"
 password="${ZENDESK_PASSWORD}"
 
+if [[ $# -eq 0 ]]; then
+  echo "usage: $0 user-id" >&2
+  exit 2
+fi
+
+userId=$1
+shift
+
 http \
   --auth "${email}:${password}" \
-  GET "https://${subdomain}.zendesk.com/api/v2/users.json" \
+  GET "https://${subdomain}.zendesk.com/api/v2/users/${userId}.json" \
   "Accept:application/json" \
   "$@"

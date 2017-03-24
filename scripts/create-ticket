@@ -7,18 +7,23 @@ username="${ZENDESK_USERNAME}"
 password="${ZENDESK_PASSWORD}"
 
 http \
-  --verbose \
   --auth "${username}:${password}" \
   POST "https://${subdomain}.zendesk.com/api/v2/tickets.json" \
   'Content-Type:application/json' \
   'Accept:application/json' \
+  "$@" \
   <<!
 {
   "ticket": {
-    "subject": "A subject",
+    "requester": {
+      "name": "Wilma Flintstone",
+      "email": "steven+wilma@steshaw.org"
+    },
+    "subject": "Awesome Jobs - Betterteam Trial",
     "comment": {
-      "body": "A comment."
-    }
+      "body": "Wilma Flintstone, steven+wilma@steshaw.org, Awesome Jobs"
+    },
+    "is_public": false
   }
 }
 !

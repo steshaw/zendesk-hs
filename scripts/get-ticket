@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -eu
+
+subdomain="${ZENDESK_SUBDOMAIN}"
+username="${ZENDESK_USERNAME}"
+password="${ZENDESK_PASSWORD}"
+
+if [[ $# -eq 0 ]]; then
+  echo "usage: $0 user-id" >&2
+  exit 2
+fi
+
+ticketId=$1
+shift
+
+http \
+  --auth "${username}:${password}" \
+  GET "https://${subdomain}.zendesk.com/api/v2/tickets/${ticketId}.json" \
+  "Accept:application/json" \
+  "$@"
