@@ -21,9 +21,10 @@ http \
     },
     "subject": "Awesome Jobs - Betterteam Trial",
     "comment": {
-      "body": "Wilma Flintstone, steven+wilma@steshaw.org, Awesome Jobs"
+      "body": "Wilma Flintstone, steven+wilma@steshaw.org, Awesome Jobs",
+      "public": false
     },
-    "is_public": false
+    "tags": []
   }
 }
 !
