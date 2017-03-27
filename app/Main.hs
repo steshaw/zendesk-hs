@@ -1,6 +1,6 @@
 module Main where
 
-import Server
+import qualified Zendesk.Internal.MockServer as MockServer
 
 main :: IO ()
-main = startApp
+main = MockServer.main

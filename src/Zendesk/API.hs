@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Lib where
+module Zendesk.API where
 
 import Data.Aeson
 import Data.Aeson.TH

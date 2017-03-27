@@ -1,6 +1,6 @@
-module Client where
+module Zendesk.Client where
 
-import Lib
+import Zendesk.API
 
 import qualified Data.ByteString as BS
 import qualified Network.HTTP.Client as HttpClient

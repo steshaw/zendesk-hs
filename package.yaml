@@ -13,10 +13,6 @@ extra-source-files:
 
 library:
   source-dirs: src
-  exposed-modules:
-    - Lib
-    - Client
-    - Server
   dependencies:
     - base >=4.7 && <5
     - aeson
@@ -31,7 +27,7 @@ library:
     - warp
 
 executables:
-  zendesk:
+  zendesk-mock-server:
     main: Main.hs
     source-dirs: app
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
@@ -41,7 +37,7 @@ executables:
 
 tests:
   zendesk-test:
-    main: Spec.hs
+    main: Main.hs
     source-dirs: test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     dependencies:

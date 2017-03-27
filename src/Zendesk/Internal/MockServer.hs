@@ -3,9 +3,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Server where
+module Zendesk.Internal.MockServer where
 
-import Lib
+import Zendesk.API
 
 import qualified Data.Text as Text
 import qualified Network.Wai.Handler.Warp as Warp
@@ -80,8 +80,8 @@ app = serveWithContext api basicAuthServerContext server
 
 port = 8080
 
--- | hello, server!
-startApp :: IO ()
-startApp = do
+-- | Start the mock server.
+main :: IO ()
+main = do
   putStrLn $ "Listening on " ++ show port
   Warp.run port app
