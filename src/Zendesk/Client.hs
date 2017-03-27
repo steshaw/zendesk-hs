@@ -3,10 +3,12 @@ module Zendesk.Client where
 import Zendesk.API
 
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC8
 import qualified Network.HTTP.Client as HttpClient
 import qualified Network.HTTP.Client.TLS as TLS
 import Servant
 import Servant.Client
+import qualified System.Environment as Env
 
 getUsers :: ClientM [User]
 getTickets :: BasicAuthData -> ClientM TicketPage
@@ -22,8 +24,42 @@ runner baseUrl username password authenticatedAction = do
   let basicAuthData = BasicAuthData username password
   runClientM (authenticatedAction basicAuthData) (ClientEnv manager baseUrl)
 
-localBaseUrl = BaseUrl Http "localhost" 8080 ""
+mockServerBaseUrl :: BaseUrl
+mockServerBaseUrl = BaseUrl Http "localhost" 8080 ""
+
+zendeskBaseUrl ::
+  String       -- The Zendesk subdomain.
+  -> BaseUrl   -- The `BaseUrl` to use with `run`.
 zendeskBaseUrl subdomain = BaseUrl Https (subdomain ++ ".zendesk.com") 443 "/api/v2"
 
-runLocal = runner localBaseUrl
+runMock
+  :: BSC8.ByteString
+  -> BSC8.ByteString
+  -> (BasicAuthData -> ClientM a)
+  -> IO (Either ServantError a)
+runMock = runner mockServerBaseUrl
+
+run :: [Char]
+       -> BSC8.ByteString
+       -> BSC8.ByteString
+       -> (BasicAuthData -> ClientM a)
+       -> IO (Either ServantError a)
 run subdomain = runner (zendeskBaseUrl subdomain)
+
+-- |
+--
+-- Extracts the subdomain, username and password from the environment via
+-- 'Env.getEnv'.
+--
+-- Requires the environment variables to be set:
+--
+-- * ZENDESK_SUBDOMAIN
+-- * ZENDESK_USERNAME
+-- * ZENDESK_PASSWORD
+--
+env :: IO (String, BSC8.ByteString, BSC8.ByteString)
+env = do
+  subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
+  username <- Env.getEnv "ZENDESK_USERNAME"
+  password <- Env.getEnv "ZENDESK_PASSWORD"
+  return (subdomain, BSC8.pack username, BSC8.pack password)

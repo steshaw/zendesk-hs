@@ -5,7 +5,6 @@ module UsersSpec (usersSpec) where
 
 import qualified Zendesk.Internal.MockServer as MockServer
 
-import qualified System.Environment as Env
 import qualified Data.ByteString.Char8 as BS8
 import Test.Hspec
 import Test.Hspec.Wai

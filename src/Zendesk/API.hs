@@ -46,6 +46,7 @@ data TicketCommentCreate = TicketCommentCreate
   }
   deriving (Show)
 
+consMaybe :: (ToJSON v, KeyValue a) => Text -> Maybe v -> [a] -> [a]
 consMaybe fieldName = maybe id ((:) . (fieldName .=))
 
 instance ToJSON TicketCommentCreate where

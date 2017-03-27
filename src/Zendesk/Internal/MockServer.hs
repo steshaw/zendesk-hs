@@ -7,7 +7,6 @@ module Zendesk.Internal.MockServer where
 
 import Zendesk.API
 
-import qualified Data.Text as Text
 import qualified Network.Wai.Handler.Warp as Warp
 import Servant
 
