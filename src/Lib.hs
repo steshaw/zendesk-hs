@@ -23,29 +23,9 @@ data User = User
 
 $(deriveJSON defaultOptions ''User)
 
--- | Public data that anyone can use.
-newtype PublicData = PublicData { somedata :: Text }
-  deriving (Eq, Show, Generic)
-
-instance ToJSON PublicData
-instance FromJSON PublicData
-
--- | private data that needs protection
-newtype PrivateData = PrivateData { shh :: Text }
-  deriving (Eq, Show, Generic)
-
-instance ToJSON PrivateData
-instance FromJSON PrivateData
-
--- | A type to wrap our public API.
-type PublicAPI = Get '[JSON] [PublicData]
-
 type Id = Int64
 
 type Date = UTCTime
-
--- | A type to wrap our private API.
-type PrivateAPI = Get '[JSON] PrivateData
 
 type UsersAPI = "users" :> Get '[JSON] [User]
 
@@ -290,9 +270,7 @@ type PostTicket =
   :> Post '[JSON] TicketCreateResponse
 
 type API
-    = "public"  :> PublicAPI
- :<|> UsersAPI
- :<|> "private" :> BasicAuth "protected-realm" User :> PrivateAPI
+    = UsersAPI
  :<|> Authed :> GetTickets
  :<|> Authed :> PostTicket
 

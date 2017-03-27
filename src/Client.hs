@@ -8,18 +8,13 @@ import qualified Network.HTTP.Client.TLS as TLS
 import Servant
 import Servant.Client
 
-getPublic :: ClientM [PublicData]
 getUsers :: ClientM [User]
-getPrivate :: BasicAuthData -> ClientM PrivateData
 getTickets :: BasicAuthData -> ClientM TicketPage
 createTicket :: BasicAuthData -> TicketCreate -> ClientM TicketCreateResponse
 
-(getPublic
-  :<|> getUsers
-  :<|> getPrivate
+getUsers
   :<|> getTickets
-  :<|> createTicket
-  ) = client api
+  :<|> createTicket = client api
 
 runner :: BaseUrl -> BS.ByteString -> BS.ByteString -> (BasicAuthData -> ClientM a) -> IO (Either ServantError a)
 runner baseUrl username password authenticatedAction = do

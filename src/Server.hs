@@ -65,16 +65,10 @@ basicAuthServerContext = authCheck :. EmptyContext
 -- to supply a function that takes 'User' as an argument.
 basicAuthServer :: Server API
 basicAuthServer =
-  let getPublic = return [PublicData "foo", PublicData "bar"]
-      getUsers = return users
-      getPrivate (user :: User) = return (PrivateData {
-        shh = Text.pack (show user)
-      })
+  let getUsers = return users
       getTickets user = return ticketPage
       postTicket user ticketCreate = return (TicketCreateResponse (Just 0))
-  in     getPublic
-    :<|> getUsers
-    :<|> getPrivate
+  in     getUsers
     :<|> getTickets
     :<|> postTicket
 
