@@ -4,13 +4,14 @@ import Zendesk.API
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC8
+import Data.Monoid ((<>))
 import qualified Network.HTTP.Client as HttpClient
 import qualified Network.HTTP.Client.TLS as TLS
 import Servant
 import Servant.Client
 import qualified System.Environment as Env
 
-getUsers :: ClientM [User]
+getUsers :: BasicAuthData -> ClientM Users
 getTickets :: BasicAuthData -> ClientM TicketPage
 createTicket :: BasicAuthData -> TicketCreate -> ClientM TicketCreateResponse
 
@@ -30,7 +31,7 @@ mockServerBaseUrl = BaseUrl Http "localhost" 8080 ""
 zendeskBaseUrl ::
   String       -- The Zendesk subdomain.
   -> BaseUrl   -- The `BaseUrl` to use with `run`.
-zendeskBaseUrl subdomain = BaseUrl Https (subdomain ++ ".zendesk.com") 443 "/api/v2"
+zendeskBaseUrl subdomain = BaseUrl Https (subdomain <> ".zendesk.com") 443 "/api/v2"
 
 runMock
   :: BSC8.ByteString

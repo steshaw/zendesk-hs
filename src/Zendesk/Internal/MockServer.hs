@@ -5,18 +5,32 @@
 
 module Zendesk.Internal.MockServer where
 
-import Zendesk.API
+import Zendesk
 
+import Data.Monoid ((<>))
 import qualified Network.Wai.Handler.Warp as Warp
 import Servant
 
-fred = User 3 "Fred" "Flintstone"
+emptyUser = User Nothing Nothing Nothing Nothing
+
+issac = emptyUser
+  { user_id = Just 1
+  , user_name = Just "Issac Newton"
+  }
+
+albert = emptyUser
+  { user_id = Just 2
+  , user_name = Just "Albert Einstein"
+  }
+
+fred = emptyUser
+  { user_id = Just 3
+  , user_name = Just "Fred Flintstone"
+  , user_email = Just "fred.flintstone@gmail.com"
+  }
 
 users :: [User]
-users = [ User 1 "Isaac" "Newton"
-        , User 2 "Albert" "Einstein"
-        , fred
-        ]
+users = [ issac, albert, fred ]
 
 ticket1 = Ticket
   { ticketId = Just 1
@@ -64,7 +78,8 @@ basicAuthServerContext = authCheck :. EmptyContext
 -- to supply a function that takes 'User' as an argument.
 basicAuthServer :: Server API
 basicAuthServer =
-  let getUsers = return users
+  let
+      getUsers user = return (Users users)
       getTickets user = return ticketPage
       postTicket user ticketCreate = return (TicketCreateResponse (Just 0))
   in     getUsers
@@ -82,5 +97,5 @@ port = 8080
 -- | Start the mock server.
 main :: IO ()
 main = do
-  putStrLn $ "Listening on " ++ show port
+  putStrLn $ "Listening on " <> show port
   Warp.run port app

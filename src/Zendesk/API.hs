@@ -10,24 +10,91 @@ module Zendesk.API where
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Int (Int64)
+import qualified Data.List as List
+import Data.Monoid ((<>))
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import GHC.Generics (Generic)
 import Servant
 
-data User = User
-  { userId        :: Int
-  , userFirstName :: String
-  , userLastName  :: String
-  } deriving (Eq, Show)
-
-$(deriveJSON defaultOptions ''User)
-
 type Id = Int64
 
 type Date = UTCTime
 
-type UsersAPI = "users" :> Get '[JSON] [User]
+data User = User
+  { user_id :: Maybe Id
+  , user_email :: Maybe Text
+  , user_name :: Maybe Text
+  , user_active :: Maybe Bool
+-- Name	Type	Read-only	Mandatory	Comment
+-- id	integer	yes	no	Automatically assigned when the user is created
+-- email	string	no	no	The user's primary email address
+-- name	string	no	yes	The user's name
+-- active	boolean	yes	no	false if the user has been deleted
+-- alias	string	no	no	An alias displayed to end users
+-- chat_only	boolean	yes	no	Whether or not the user is a chat-only agent
+-- created_at	date	yes	no	The time the user was created
+-- custom_role_id	integer	no	no	A custom role if the user is an agent on the Enterprise plan
+-- details	string	no	no	Any details you want to store about the user, such as an address
+-- external_id	string	no	no	A unique id you can specify for the user
+-- last_login_at	date	yes	no	The last time the user signed in to Zendesk Support
+-- locale	string	yes	no	The user's locale
+-- locale_id	integer	no	no	The user's language identifier
+-- moderator	boolean	no	no	Designates whether the user has forum moderation capabilities
+-- notes	string	no	no	Any notes you want to store about the user
+-- only_private_comments	boolean	no	no	true if the user can only create private comments
+-- organization_id	integer	no	no	The id of the organization the user is associated with
+-- default_group_id	integer	no*	no	The id of the user's default group. *Can only be set on create, not on update
+-- phone	string	no	no	The user's primary phone number. See Phone Number below
+-- photo	Attachment	no	no	The user's profile picture represented as an Attachment object
+-- restricted_agent	boolean	no	no	If the agent has any restrictions; false for admins and unrestricted agents, true for other agents
+-- role	string	no	no	The user's role. Possible values are "end-user", "agent", or "admin"
+-- shared	boolean	yes	no	If the user is shared from a different Zendesk Support instance. Ticket sharing accounts only
+-- shared_agent	boolean	yes	no	If the user is a shared agent from a different Zendesk Support instance. Ticket sharing accounts only
+-- signature	string	no	no	The user's signature. Only agents and admins can have signatures
+-- suspended	boolean	no	no	If the agent is suspended. Tickets from suspended users are also suspended, and these users cannot sign in to the end user portal
+-- tags	array	no	no	The user's tags. Only present if your account has user tagging enabled
+-- ticket_restriction	string	no	no	Specifies which tickets the user has access to. Possible values are: "organization", "groups", "assigned", "requested", null
+-- time_zone	string	no	no	The user's time zone. See Time Zone below
+-- two_factor_auth_enabled	boolean	yes	no	If two factor authentication is enabled.
+-- updated_at	date	yes	no	The time the user was last updated
+-- url	string	yes	no	The user's API url
+-- user_fields	hash	no	no	Custom fields for the user
+-- verified	boolean	no	no	If the user's identity has been verified or not
+  } deriving (Eq, Show, Generic)
+
+aesonOptions fieldLabelModifier = defaultOptions
+  { fieldLabelModifier = fieldLabelModifier
+  , omitNothingFields = True
+  }
+
+stripPrefix prefix fieldName = case List.stripPrefix prefix fieldName of
+  Just s -> s
+  _      -> error $ unlines
+    [ "Error stripping '" <> prefix <> "' from field of User: '"
+                          <> fieldName <> "'"
+    , "This indicates a programming bug"
+    ]
+
+userOptions = aesonOptions (stripPrefix "user_")
+
+instance ToJSON User where
+  toJSON = genericToJSON userOptions
+
+instance FromJSON User where
+  parseJSON = genericParseJSON userOptions
+
+data Users = Users
+  { users_users :: [User] }
+  deriving (Show, Generic)
+
+usersOptions = aesonOptions (stripPrefix "users_")
+
+instance ToJSON Users where
+  toJSON = genericToJSON usersOptions
+
+instance FromJSON Users where
+  parseJSON = genericParseJSON usersOptions
 
 data TicketType = Problem | Incident | Question | Task
 
@@ -263,15 +330,17 @@ instance FromJSON TicketCreateResponse
 
 type Authed = BasicAuth "protected-realm" User
 
-type GetTickets = "tickets.json" :> Get '[JSON] TicketPage
+type GetUsers = "users.json" :> Get '[JSON] Users
+
+type GetTickets = "tickets" :> Get '[JSON] TicketPage
 
 type PostTicket =
-  "tickets.json"
+  "tickets"
   :> ReqBody '[JSON] TicketCreate
   :> Post '[JSON] TicketCreateResponse
 
 type API
-    = UsersAPI
+    = Authed :> GetUsers
  :<|> Authed :> GetTickets
  :<|> Authed :> PostTicket
 
