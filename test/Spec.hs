@@ -34,37 +34,59 @@ users = [json|
   ]
 |]
 
-spec :: Spec
-spec = with (return app) $ do
+usersSpec :: Spec
+usersSpec = with (return app) $ do
     describe "GET /users" $ do
         it "responds with 200" $ do
             get "/users" `shouldRespondWith` 200
         it "responds with [User]" $ do
             get "/users" `shouldRespondWith` users
 
-spec2 :: Spec
-spec2 =
+emptyCommentCreate = TicketCommentCreate
+  { ticketCommentCreate_body = Nothing
+  , ticketCommentCreate_htmlBody = Nothing
+  , ticketCommentCreate_public = Nothing
+  , ticketCommentCreate_authorId = Nothing
+  }
+
+ticketsSpec :: Spec
+ticketsSpec =
   describe "POST /tickets.json" $ do
+
     it "responds okay with a subject" $ do
       subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
       username <- Env.getEnv "ZENDESK_USERNAME"
       password <- Env.getEnv "ZENDESK_PASSWORD"
-      let ticketCommentCreate = TicketCommentCreate (Just "A body") Nothing Nothing Nothing
-      let ticketCreate = TicketCreate (Just "A subject") ticketCommentCreate
-      run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticketCreate)
+      let comment = emptyCommentCreate { ticketCommentCreate_body = Just "A body" }
+      let ticket = TicketCreate (Just "A subject") comment
+      run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
-      -- XXX: Underlying HTTP response code should be 401/Created.
+
     it "responds okay without a subject" $ do
       subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
       username <- Env.getEnv "ZENDESK_USERNAME"
       password <- Env.getEnv "ZENDESK_PASSWORD"
-      let ticketCommentCreate = TicketCommentCreate (Just "A body") Nothing Nothing Nothing
-      let ticketCreate = TicketCreate Nothing ticketCommentCreate
-      run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticketCreate)
+      let comment = emptyCommentCreate { ticketCommentCreate_body = Just "A body" }
+      let ticket = TicketCreate Nothing comment
+      run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
-      -- XXX: Underlying HTTP response code should be 401/Created.
+
+    it "can create a private ticket (with private comment)" $ do
+      subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
+      username <- Env.getEnv "ZENDESK_USERNAME"
+      password <- Env.getEnv "ZENDESK_PASSWORD"
+      let comment = emptyCommentCreate {
+          ticketCommentCreate_body = Just "Wilma Flintstone, steven+wilma@steshaw.org, Awesome Jobs"
+        , ticketCommentCreate_public = Just False
+        }
+      let ticket = TicketCreate {
+          ticketCreate_subject = Just "Awesome Jobs — Betterteam trial"
+        , ticketCreate_comment = comment
+        }
+      run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticket)
+        `shouldReturn` Right (TicketCreateResponse Nothing)
 
 main :: IO ()
 main = hspec $ do
-  spec
-  spec2
+  usersSpec
+  ticketsSpec

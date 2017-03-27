@@ -55,6 +55,9 @@ data TicketStatus = New | Open | Pending | Hold | Solved | Closed
 
 data TicketPriority = Urgent | High | Normal | Low
 
+-- |
+-- See https://developer.zendesk.com/rest_api/docs/core/ticket_comments#ticket-comments
+--
 data TicketCommentCreate = TicketCommentCreate
   { ticketCommentCreate_body :: Maybe Text
   , ticketCommentCreate_htmlBody :: Maybe Text
@@ -67,11 +70,6 @@ consMaybe fieldName = maybe id ((:) . (fieldName .=))
 
 instance ToJSON TicketCommentCreate where
   toJSON comment = object fields
-    -- [ "body" .= ticketCommentCreate_body comment
-    -- , "html_body" .= ticketCommentCreate_htmlBody comment
-    -- , "public" .= ticketCommentCreate_public comment
-    -- , "author_id" .= ticketCommentCreate_authorId comment
-    -- ]
     where
       conss = consMaybe "body" (ticketCommentCreate_body comment)
             . consMaybe "html_body" (ticketCommentCreate_htmlBody comment)
@@ -95,15 +93,24 @@ data TicketComment = TicketComment
   , plainBody :: Text
   , public :: Bool
   , authorId :: Id
+  , createdAt :: Date
+-- Name	Type	Read-only	Comment
+-- id	integer	yes	Automatically assigned when the comment is created
+-- type	string	yes	Comment or VoiceComment
+-- body	string	no	The comment string
+-- html_body	string	no	The comment formatted as HTML
+-- plain_body	string	yes	The comment as plain text
+-- public	boolean	no	true if a public comment; false if an internal note. The initial value set on ticket creation persists for any additional comment unless you change it
+-- author_id	integer	no	The id of the comment author
 -- attachments	array	yes	Attachments, if any. See Attachment
 -- via	object	yes	How the comment was created. See Via Object
 -- metadata	object	yes	System information (web client, IP address, etc.)
-  , createdAt :: Date
+-- created_at	date	yes	The time the comment was created
   }
 
 data TicketCreate = TicketCreate
-  { ticketCreateSubject :: Maybe Text
-  , ticketCreateComment :: TicketCommentCreate
+  { ticketCreate_subject :: Maybe Text
+  , ticketCreate_comment :: TicketCommentCreate
 -- requester_id	The numeric ID of the user asking for support through the ticket
 -- submitter_id	The numeric ID of the user submitting the ticket
 -- assignee_id	The numeric ID of the agent to assign the ticket to
@@ -118,8 +125,8 @@ instance ToJSON TicketCreate where
       -- ]
     ]
     where
-      conss = consMaybe "subject" (ticketCreateSubject ticket)
-      fields = conss ["comment" .= (ticketCreateComment ticket)]
+      conss = consMaybe "subject" (ticketCreate_subject ticket)
+      fields = conss ["comment" .= (ticketCreate_comment ticket)]
 
 instance FromJSON TicketCreate where
   parseJSON = withObject "TicketCreate" $ \wrapper -> do
@@ -127,8 +134,8 @@ instance FromJSON TicketCreate where
     subject <- ticket .: "subject"
     comment <- ticket .: "comment"
     return $ TicketCreate
-      { ticketCreateSubject = subject
-      , ticketCreateComment = comment
+      { ticketCreate_subject = subject
+      , ticketCreate_comment = comment
       }
 
 data Ticket = Ticket
