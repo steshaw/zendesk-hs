@@ -18,32 +18,32 @@ emptyCommentCreate = TicketCommentCreate
   , ticketCommentCreate_authorId = Nothing
   }
 
+zendeskEnv = do
+  subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
+  username <- Env.getEnv "ZENDESK_USERNAME"
+  password <- Env.getEnv "ZENDESK_PASSWORD"
+  return (subdomain, BS8.pack username, BS8.pack password)
+
 ticketsSpec :: Spec
 ticketsSpec =
   describe "POST /tickets.json" $ do
 
     it "responds okay with a subject" $ do
-      subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
-      username <- Env.getEnv "ZENDESK_USERNAME"
-      password <- Env.getEnv "ZENDESK_PASSWORD"
+      (subdomain, username, password) <- zendeskEnv
       let comment = emptyCommentCreate { ticketCommentCreate_body = Just "A body" }
       let ticket = TicketCreate (Just "A subject") comment
-      run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticket)
+      run subdomain username password (\auth -> createTicket auth ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
 
     it "responds okay without a subject" $ do
-      subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
-      username <- Env.getEnv "ZENDESK_USERNAME"
-      password <- Env.getEnv "ZENDESK_PASSWORD"
+      (subdomain, username, password) <- zendeskEnv
       let comment = emptyCommentCreate { ticketCommentCreate_body = Just "A body" }
       let ticket = TicketCreate Nothing comment
-      run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticket)
+      run subdomain username password (\auth -> createTicket auth ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
 
     it "can create a private ticket (with private comment)" $ do
-      subdomain <- Env.getEnv "ZENDESK_SUBDOMAIN"
-      username <- Env.getEnv "ZENDESK_USERNAME"
-      password <- Env.getEnv "ZENDESK_PASSWORD"
+      (subdomain, username, password) <- zendeskEnv
       let comment = emptyCommentCreate {
           ticketCommentCreate_body = Just "Wilma Flintstone, steven+wilma@steshaw.org, Awesome Jobs"
         , ticketCommentCreate_public = Just False
@@ -52,5 +52,5 @@ ticketsSpec =
           ticketCreate_subject = Just "Awesome Jobs — Betterteam trial"
         , ticketCreate_comment = comment
         }
-      run subdomain (BS8.pack username) (BS8.pack password) (\auth -> createTicket auth ticket)
+      run subdomain username password (\auth -> createTicket auth ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
