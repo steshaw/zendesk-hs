@@ -102,6 +102,22 @@ data TicketStatus = New | Open | Pending | Hold | Solved | Closed
 
 data TicketPriority = Urgent | High | Normal | Low
 
+-- "requester": { "locale_id": 8, "name": "Pablo", "email": "pablito@example.org" }
+data Requester = Requester
+  { requester_localeId :: Maybe Id
+  , requester_name :: Maybe Text
+  , requester_email :: Maybe Text
+  } deriving (Show, Generic)
+
+requesterOptions :: Options
+requesterOptions = aesonOptions (stripPrefix "requester_")
+
+instance ToJSON Requester where
+  toJSON = genericToJSON requesterOptions
+
+instance FromJSON Requester where
+  parseJSON = genericParseJSON requesterOptions
+
 -- |
 -- See https://developer.zendesk.com/rest_api/docs/core/ticket_comments#ticket-comments
 --
@@ -159,6 +175,7 @@ data TicketComment = TicketComment
 data TicketCreate = TicketCreate
   { ticketCreate_subject :: Maybe Text
   , ticketCreate_comment :: TicketCommentCreate
+  , ticketCreate_requester :: Maybe Requester
 -- requester_id	The numeric ID of the user asking for support through the ticket
 -- submitter_id	The numeric ID of the user submitting the ticket
 -- assignee_id	The numeric ID of the agent to assign the ticket to
@@ -174,6 +191,7 @@ instance ToJSON TicketCreate where
     ]
     where
       conss = consMaybe "subject" (ticketCreate_subject ticket)
+            . consMaybe "requester" (ticketCreate_requester ticket)
       fields = conss ["comment" .= (ticketCreate_comment ticket)]
 
 instance FromJSON TicketCreate where
@@ -181,9 +199,11 @@ instance FromJSON TicketCreate where
     ticket <- wrapper .: "ticket"
     subject <- ticket .: "subject"
     comment <- ticket .: "comment"
+    requester <- ticket .: "requester"
     return $ TicketCreate
       { ticketCreate_subject = subject
       , ticketCreate_comment = comment
+      , ticketCreate_requester = requester
       }
 
 data Ticket = Ticket
