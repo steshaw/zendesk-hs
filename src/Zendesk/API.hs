@@ -16,6 +16,7 @@ import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import GHC.Generics (Generic)
 import Servant
+import qualified Text.CaseConversion as Case
 
 type Id = Int64
 
@@ -61,7 +62,8 @@ data User = User
 -- url	string	yes	no	The user's API url
 -- user_fields	hash	no	no	Custom fields for the user
 -- verified	boolean	no	no	If the user's identity has been verified or not
-  } deriving (Eq, Show, Generic)
+  }
+  deriving (Eq, Show, Generic)
 
 aesonOptions fieldLabelModifier = defaultOptions
   { fieldLabelModifier = fieldLabelModifier
@@ -69,7 +71,7 @@ aesonOptions fieldLabelModifier = defaultOptions
   }
 
 toField prefix fieldName = case List.stripPrefix prefix fieldName of
-  Just (c : cs) -> Char.toLower c : cs
+  Just s -> Case.toSnakeCase . Case.fromCamelCase $ s
   _      -> error $ unlines
     [ "Error in toField"
     , "prefix='" <> prefix <> "'"
@@ -77,7 +79,7 @@ toField prefix fieldName = case List.stripPrefix prefix fieldName of
     , "This indicates a programming bug"
     ]
 
-userOptions = aesonOptions (toField "user") -- TODO lowercase first letter
+userOptions = aesonOptions (toField "user")
 
 instance ToJSON User where
   toJSON = genericToJSON userOptions
@@ -108,7 +110,8 @@ data Requester = Requester
   { requesterLocaleId :: Maybe Id
   , requesterName :: Maybe Text
   , requesterEmail :: Maybe Text
-  } deriving (Show, Generic)
+  }
+  deriving (Show, Generic)
 
 requesterOptions :: Options
 requesterOptions = aesonOptions (toField "requester")
@@ -128,26 +131,18 @@ data TicketCommentCreate = TicketCommentCreate
   , ticketCommentCreatePublic :: Maybe Bool
   , ticketCommentCreateAuthorId :: Maybe Id
   }
-  deriving (Show)
+  deriving (Show, Generic)
 
 consMaybe :: (ToJSON v, KeyValue a) => Text -> Maybe v -> [a] -> [a]
 consMaybe fieldName = maybe id ((:) . (fieldName .=))
 
+ticketCommentCreateOptions = aesonOptions (toField "ticketCommentCreate")
+
 instance ToJSON TicketCommentCreate where
-  toJSON comment = object fields
-    where
-      conss = consMaybe "body" (ticketCommentCreateBody comment)
-            . consMaybe "html_body" (ticketCommentCreateHtmlBody comment)
-            . consMaybe "public" (ticketCommentCreatePublic comment)
-            . consMaybe "author_id" (ticketCommentCreateAuthorId comment)
-      fields = conss []
+  toJSON = genericToJSON ticketCommentCreateOptions
 
 instance FromJSON TicketCommentCreate where
-  parseJSON = withObject "TicketCommentCreate" $ \comment -> TicketCommentCreate
-    <$> comment .:? "body"
-    <*> comment .:? "html_body"
-    <*> comment .:? "public"
-    <*> comment .:? "author_id"
+  parseJSON = genericParseJSON ticketCommentCreateOptions
 
 data TicketCommentType = Comment | VoiceComment
 
@@ -182,30 +177,17 @@ data TicketCreate = TicketCreate
 -- assignee_id	The numeric ID of the agent to assign the ticket to
 -- group_id	The numeric ID of the group to assign the ticket to
   }
+  deriving (Generic)
+
+ticketCreateOptions = aesonOptions (toField "ticketCreate")
 
 instance ToJSON TicketCreate where
-  toJSON ticket = object
-    [ "ticket" .= object fields
-      -- [ "subject" .= ticketCreateSubject ticket
-      -- , "comment" .= ticketCreateComment ticket
-      -- ]
-    ]
-    where
-      conss = consMaybe "subject" (ticketCreateSubject ticket)
-            . consMaybe "requester" (ticketCreateRequester ticket)
-      fields = conss ["comment" .= ticketCreateComment ticket]
+  toJSON ticket = object [ "ticket" .= genericToJSON ticketCreateOptions ticket ]
 
 instance FromJSON TicketCreate where
   parseJSON = withObject "TicketCreate" $ \wrapper -> do
     ticket <- wrapper .: "ticket"
-    subject <- ticket .: "subject"
-    comment <- ticket .: "comment"
-    requester <- ticket .: "requester"
-    return TicketCreate
-      { ticketCreateSubject = subject
-      , ticketCreateComment = comment
-      , ticketCreateRequester = requester
-      }
+    genericParseJSON ticketCreateOptions ticket
 
 data Ticket = Ticket
   { ticketId :: Maybe Id
@@ -247,46 +229,31 @@ data Ticket = Ticket
 -- created_at	date	yes	no	When this record was created
 -- updated_at	date	yes	no	When this record last got updated
   }
-  deriving Show
+  deriving (Show, Generic)
+
+ticketOptions = aesonOptions (toField "ticket")
 
 instance ToJSON Ticket where
-  toJSON ticket = object
-    [ "id" .= ticketId ticket
-    , "url" .= ticketUrl ticket
-    , "subject" .= ticketSubject ticket
-    , "description" .= ticketDescription ticket
-    ]
+  toJSON = genericToJSON ticketOptions
 
 instance FromJSON Ticket where
-  -- XXX: Probably change this to record syntax (instead of applicative).
-  parseJSON = withObject "Ticket" $ \ticket -> Ticket
-    <$> ticket .: "id"
-    <*> ticket .: "url"
-    <*> ticket .: "subject"
-    <*> ticket .: "description"
+  parseJSON = genericParseJSON ticketOptions
 
 data TicketPage = TicketPage
-  { ticketCount :: Int
-  , ticketNextPage :: Maybe Text -- TODO: actually URL.
-  , ticketPrevPage :: Maybe Text -- TODO: actually URL.
-  , tickets :: [Ticket]
+  { ticketPageCount :: Int
+  , ticketPageNextPage :: Maybe Text -- TODO: actually URL.
+  , ticketPagePrevPage :: Maybe Text -- TODO: actually URL.
+  , ticketPageTickets :: [Ticket]
   }
-  deriving Show
+  deriving (Show, Generic)
+
+ticketPageOptions = aesonOptions (toField "ticketPage")
 
 instance ToJSON TicketPage where
-  toJSON ticketPage = object
-    [ "count" .= ticketCount ticketPage
-    , "next_page" .= ticketNextPage ticketPage
-    , "previous_page" .= ticketPrevPage ticketPage
-    , "tickets" .= tickets ticketPage
-    ]
+  toJSON = genericToJSON ticketPageOptions
 
 instance FromJSON TicketPage where
-  parseJSON = withObject "TicketPage" $ \ticketPage -> TicketPage
-    <$> ticketPage .: "count"
-    <*> ticketPage .: "next_page"
-    <*> ticketPage .: "previous_page"
-    <*> ticketPage .: "tickets"
+  parseJSON = genericParseJSON ticketPageOptions
 
 -- Ticket example
 {-

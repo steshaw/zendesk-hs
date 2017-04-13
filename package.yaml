@@ -17,6 +17,7 @@ library:
     - base >=4.7 && <5
     - aeson
     - bytestring
+    - case-conversion
     - http-client
     - http-client-tls
     - servant-client

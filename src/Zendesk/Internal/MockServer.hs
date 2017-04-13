@@ -49,10 +49,10 @@ ticket2 = Ticket
 exampleTickets = [ticket1, ticket2]
 
 ticketPage = TicketPage
-  { ticketCount = length exampleTickets
-  , ticketNextPage = Nothing
-  , ticketPrevPage = Nothing
-  , tickets = exampleTickets
+  { ticketPageCount = length exampleTickets
+  , ticketPageNextPage = Nothing
+  , ticketPagePrevPage = Nothing
+  , ticketPageTickets = exampleTickets
   }
 
 -- | 'BasicAuthCheck' holds the handler we'll use to verify a username and password.
