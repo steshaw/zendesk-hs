@@ -18,8 +18,8 @@ emptyCommentCreate = TicketCommentCreate
   , ticketCommentCreateAuthorId = Nothing
   }
 
-cannedTicket :: Aeson.Value
-cannedTicket = [aesonQQ|
+jsonTicket :: Aeson.Value
+jsonTicket = [aesonQQ|
 {
   "ticket": {
     "subject": "Awesome Company — Trial",
@@ -35,8 +35,29 @@ cannedTicket = [aesonQQ|
 }
 |]
 
+privateTicket :: TicketCreate
+privateTicket = TicketCreate
+  { ticketCreateSubject = Just "Awesome Company — Trial"
+  , ticketCreateComment = emptyCommentCreate
+    { ticketCommentCreateHtmlBody = Just
+        "Wilma Flintstone at <b>Awesome Company</b> signed up for a trial"
+    , ticketCommentCreatePublic = Just False
+    }
+  , ticketCreateRequester = Just Requester
+      { requesterLocaleId = Nothing
+      , requesterName = Just "Wilma Flintstone"
+      , requesterEmail = Just "steven+wilma@steshaw.org"
+    }
+  }
+
 ticketsSpec :: Spec
-ticketsSpec =
+ticketsSpec = do
+  describe "TicketCreate" $ do
+    it "convert to JSON" $ do
+      Aeson.toJSON privateTicket `shouldBe` jsonTicket
+    it "converts from JSON" $ do
+      Aeson.fromJSON jsonTicket `shouldBe` Aeson.Success privateTicket
+
   describe "POST /tickets.json" $ do
 
     it "responds okay with a subject" $ do
@@ -55,19 +76,6 @@ ticketsSpec =
 
     it "can create a private ticket (with private comment)" $ do
       (subdomain, username, password) <- Zendesk.env
-      let ticket = TicketCreate {
-          ticketCreateSubject = Just "Awesome Company — Trial"
-        , ticketCreateComment = emptyCommentCreate {
-            ticketCommentCreateHtmlBody = Just
-              "Wilma Flintstone at <b>Awesome Company</b> signed up for a trial"
-          , ticketCommentCreatePublic = Just False
-          }
-        , ticketCreateRequester = Just Requester {
-              requesterLocaleId = Nothing
-            , requesterName = Just "Wilma Flintstone"
-            , requesterEmail = Just "steven+wilma@steshaw.org"
-          }
-        }
-      Aeson.toJSON ticket `shouldBe` cannedTicket
+      let ticket = privateTicket
       run subdomain username password (`createTicket` ticket)
        `shouldReturn` Right (TicketCreateResponse Nothing)

@@ -63,7 +63,7 @@ data User = User
 -- user_fields	hash	no	no	Custom fields for the user
 -- verified	boolean	no	no	If the user's identity has been verified or not
   }
-  deriving (Eq, Show, Generic)
+  deriving (Show, Eq, Generic)
 
 aesonOptions fieldLabelModifier = defaultOptions
   { fieldLabelModifier = fieldLabelModifier
@@ -89,7 +89,7 @@ instance FromJSON User where
 
 newtype Users = Users
   { usersUsers :: [User] }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 usersOptions = aesonOptions (toField "users")
 
@@ -111,7 +111,7 @@ data Requester = Requester
   , requesterName :: Maybe Text
   , requesterEmail :: Maybe Text
   }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 requesterOptions :: Options
 requesterOptions = aesonOptions (toField "requester")
@@ -131,7 +131,7 @@ data TicketCommentCreate = TicketCommentCreate
   , ticketCommentCreatePublic :: Maybe Bool
   , ticketCommentCreateAuthorId :: Maybe Id
   }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 consMaybe :: (ToJSON v, KeyValue a) => Text -> Maybe v -> [a] -> [a]
 consMaybe fieldName = maybe id ((:) . (fieldName .=))
@@ -177,7 +177,7 @@ data TicketCreate = TicketCreate
 -- assignee_id	The numeric ID of the agent to assign the ticket to
 -- group_id	The numeric ID of the group to assign the ticket to
   }
-  deriving (Generic)
+  deriving (Show, Eq, Generic)
 
 ticketCreateOptions = aesonOptions (toField "ticketCreate")
 
@@ -229,7 +229,7 @@ data Ticket = Ticket
 -- created_at	date	yes	no	When this record was created
 -- updated_at	date	yes	no	When this record last got updated
   }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 ticketOptions = aesonOptions (toField "ticket")
 
@@ -245,7 +245,7 @@ data TicketPage = TicketPage
   , ticketPagePrevPage :: Maybe Text -- TODO: actually URL.
   , ticketPageTickets :: [Ticket]
   }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 ticketPageOptions = aesonOptions (toField "ticketPage")
 
@@ -311,7 +311,7 @@ instance FromJSON TicketPage where
 
 newtype TicketCreateResponse = TicketCreateResponse
   { status :: Maybe Int } -- TODO: replace with real result audit/ticket.
-  deriving (Eq, Show, Generic)
+  deriving (Show, Eq, Generic)
 
 instance ToJSON TicketCreateResponse
 instance FromJSON TicketCreateResponse
