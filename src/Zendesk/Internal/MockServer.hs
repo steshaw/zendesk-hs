@@ -14,19 +14,19 @@ import Servant
 emptyUser = User Nothing Nothing Nothing Nothing
 
 issac = emptyUser
-  { user_id = Just 1
-  , user_name = Just "Issac Newton"
+  { userId = Just 1
+  , userName = Just "Issac Newton"
   }
 
 albert = emptyUser
-  { user_id = Just 2
-  , user_name = Just "Albert Einstein"
+  { userId = Just 2
+  , userName = Just "Albert Einstein"
   }
 
 fred = emptyUser
-  { user_id = Just 3
-  , user_name = Just "Fred Flintstone"
-  , user_email = Just "fred.flintstone@gmail.com"
+  { userId = Just 3
+  , userName = Just "Fred Flintstone"
+  , userEmail = Just "fred.flintstone@gmail.com"
   }
 
 users :: [User]

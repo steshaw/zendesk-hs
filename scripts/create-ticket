@@ -6,7 +6,7 @@ subdomain="${ZENDESK_SUBDOMAIN}"
 username="${ZENDESK_USERNAME}"
 password="${ZENDESK_PASSWORD}"
 
-http \
+http --verbose \
   --auth "${username}:${password}" \
   POST "https://${subdomain}.zendesk.com/api/v2/tickets.json" \
   'Content-Type:application/json' \
@@ -19,12 +19,11 @@ http \
       "name": "Wilma Flintstone",
       "email": "steven+wilma@steshaw.org"
     },
-    "subject": "Awesome Jobs - Betterteam Trial",
+    "subject": "Awesome Company - Trial",
     "comment": {
-      "body": "Wilma Flintstone, steven+wilma@steshaw.org, Awesome Jobs",
+      "html_body": "Wilma Flintstone has joined from <b>Awesome Company</b>.",
       "public": false
-    },
-    "tags": []
+    }
   }
 }
 !

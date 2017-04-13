@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Zendesk.API where
@@ -10,6 +9,7 @@ module Zendesk.API where
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Int (Int64)
+import qualified Data.Char as Char
 import qualified Data.List as List
 import Data.Monoid ((<>))
 import Data.Text (Text)
@@ -22,10 +22,10 @@ type Id = Int64
 type Date = UTCTime
 
 data User = User
-  { user_id :: Maybe Id
-  , user_email :: Maybe Text
-  , user_name :: Maybe Text
-  , user_active :: Maybe Bool
+  { userId :: Maybe Id
+  , userEmail :: Maybe Text
+  , userName :: Maybe Text
+  , userActive :: Maybe Bool
 -- Name	Type	Read-only	Mandatory	Comment
 -- id	integer	yes	no	Automatically assigned when the user is created
 -- email	string	no	no	The user's primary email address
@@ -68,15 +68,16 @@ aesonOptions fieldLabelModifier = defaultOptions
   , omitNothingFields = True
   }
 
-stripPrefix prefix fieldName = case List.stripPrefix prefix fieldName of
-  Just s -> s
+toField prefix fieldName = case List.stripPrefix prefix fieldName of
+  Just (c : cs) -> Char.toLower c : cs
   _      -> error $ unlines
-    [ "Error stripping '" <> prefix <> "' from field of User: '"
-                          <> fieldName <> "'"
+    [ "Error in toField"
+    , "prefix='" <> prefix <> "'"
+    , "'fieldName = '" <> fieldName <> "'"
     , "This indicates a programming bug"
     ]
 
-userOptions = aesonOptions (stripPrefix "user_")
+userOptions = aesonOptions (toField "user") -- TODO lowercase first letter
 
 instance ToJSON User where
   toJSON = genericToJSON userOptions
@@ -84,11 +85,11 @@ instance ToJSON User where
 instance FromJSON User where
   parseJSON = genericParseJSON userOptions
 
-data Users = Users
-  { users_users :: [User] }
+newtype Users = Users
+  { usersUsers :: [User] }
   deriving (Show, Generic)
 
-usersOptions = aesonOptions (stripPrefix "users_")
+usersOptions = aesonOptions (toField "users")
 
 instance ToJSON Users where
   toJSON = genericToJSON usersOptions
@@ -104,13 +105,13 @@ data TicketPriority = Urgent | High | Normal | Low
 
 -- "requester": { "locale_id": 8, "name": "Pablo", "email": "pablito@example.org" }
 data Requester = Requester
-  { requester_localeId :: Maybe Id
-  , requester_name :: Maybe Text
-  , requester_email :: Maybe Text
+  { requesterLocaleId :: Maybe Id
+  , requesterName :: Maybe Text
+  , requesterEmail :: Maybe Text
   } deriving (Show, Generic)
 
 requesterOptions :: Options
-requesterOptions = aesonOptions (stripPrefix "requester_")
+requesterOptions = aesonOptions (toField "requester")
 
 instance ToJSON Requester where
   toJSON = genericToJSON requesterOptions
@@ -122,10 +123,10 @@ instance FromJSON Requester where
 -- See https://developer.zendesk.com/rest_api/docs/core/ticket_comments#ticket-comments
 --
 data TicketCommentCreate = TicketCommentCreate
-  { ticketCommentCreate_body :: Maybe Text
-  , ticketCommentCreate_htmlBody :: Maybe Text
-  , ticketCommentCreate_public :: Maybe Bool
-  , ticketCommentCreate_authorId :: Maybe Id
+  { ticketCommentCreateBody :: Maybe Text
+  , ticketCommentCreateHtmlBody :: Maybe Text
+  , ticketCommentCreatePublic :: Maybe Bool
+  , ticketCommentCreateAuthorId :: Maybe Id
   }
   deriving (Show)
 
@@ -135,10 +136,10 @@ consMaybe fieldName = maybe id ((:) . (fieldName .=))
 instance ToJSON TicketCommentCreate where
   toJSON comment = object fields
     where
-      conss = consMaybe "body" (ticketCommentCreate_body comment)
-            . consMaybe "html_body" (ticketCommentCreate_htmlBody comment)
-            . consMaybe "public" (ticketCommentCreate_public comment)
-            . consMaybe "author_id" (ticketCommentCreate_authorId comment)
+      conss = consMaybe "body" (ticketCommentCreateBody comment)
+            . consMaybe "html_body" (ticketCommentCreateHtmlBody comment)
+            . consMaybe "public" (ticketCommentCreatePublic comment)
+            . consMaybe "author_id" (ticketCommentCreateAuthorId comment)
       fields = conss []
 
 instance FromJSON TicketCommentCreate where
@@ -173,9 +174,9 @@ data TicketComment = TicketComment
   }
 
 data TicketCreate = TicketCreate
-  { ticketCreate_subject :: Maybe Text
-  , ticketCreate_comment :: TicketCommentCreate
-  , ticketCreate_requester :: Maybe Requester
+  { ticketCreateSubject :: Maybe Text
+  , ticketCreateComment :: TicketCommentCreate
+  , ticketCreateRequester :: Maybe Requester
 -- requester_id	The numeric ID of the user asking for support through the ticket
 -- submitter_id	The numeric ID of the user submitting the ticket
 -- assignee_id	The numeric ID of the agent to assign the ticket to
@@ -190,9 +191,9 @@ instance ToJSON TicketCreate where
       -- ]
     ]
     where
-      conss = consMaybe "subject" (ticketCreate_subject ticket)
-            . consMaybe "requester" (ticketCreate_requester ticket)
-      fields = conss ["comment" .= (ticketCreate_comment ticket)]
+      conss = consMaybe "subject" (ticketCreateSubject ticket)
+            . consMaybe "requester" (ticketCreateRequester ticket)
+      fields = conss ["comment" .= ticketCreateComment ticket]
 
 instance FromJSON TicketCreate where
   parseJSON = withObject "TicketCreate" $ \wrapper -> do
@@ -200,16 +201,16 @@ instance FromJSON TicketCreate where
     subject <- ticket .: "subject"
     comment <- ticket .: "comment"
     requester <- ticket .: "requester"
-    return $ TicketCreate
-      { ticketCreate_subject = subject
-      , ticketCreate_comment = comment
-      , ticketCreate_requester = requester
+    return TicketCreate
+      { ticketCreateSubject = subject
+      , ticketCreateComment = comment
+      , ticketCreateRequester = requester
       }
 
 data Ticket = Ticket
   { ticketId :: Maybe Id
-  , ticketUrl :: Maybe Text -- XXX: URL
-  , ticketSubject :: Maybe Text -- XXX: Probably should be optional.
+  , ticketUrl :: Maybe Text
+  , ticketSubject :: Maybe Text
   , ticketDescription :: Maybe Text
 
 --   Name	Type	Read-only	Mandatory	Comment
@@ -341,8 +342,8 @@ instance FromJSON TicketPage where
   ]
 -}
 
-data TicketCreateResponse = TicketCreateResponse
-  { status :: Maybe Int } -- XXX: replace with real result audit/ticket.
+newtype TicketCreateResponse = TicketCreateResponse
+  { status :: Maybe Int } -- TODO: replace with real result audit/ticket.
   deriving (Eq, Show, Generic)
 
 instance ToJSON TicketCreateResponse

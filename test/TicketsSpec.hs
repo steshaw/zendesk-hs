@@ -12,19 +12,19 @@ import Test.Hspec.Wai
 import Test.Hspec.Wai.JSON (json)
 
 emptyCommentCreate = TicketCommentCreate
-  { ticketCommentCreate_body = Nothing
-  , ticketCommentCreate_htmlBody = Nothing
-  , ticketCommentCreate_public = Nothing
-  , ticketCommentCreate_authorId = Nothing
+  { ticketCommentCreateBody = Nothing
+  , ticketCommentCreateHtmlBody = Nothing
+  , ticketCommentCreatePublic = Nothing
+  , ticketCommentCreateAuthorId = Nothing
   }
 
 cannedTicket :: Aeson.Value
 cannedTicket = [aesonQQ|
 {
   "ticket": {
-    "subject": "Awesome Jobs — Betterteam trial",
+    "subject": "Awesome Company — Trial",
       "comment": {
-        "body": "Wilma Flintstone, steven+wilma@steshaw.org, Awesome Jobs",
+        "html_body": "Wilma Flintstone at <b>Awesome Company</b> signed up for a trial",
         "public": false
     },
     "requester": {
@@ -41,31 +41,31 @@ ticketsSpec =
 
     it "responds okay with a subject" $ do
       (subdomain, username, password) <- Zendesk.env
-      let comment = emptyCommentCreate { ticketCommentCreate_body = Just "A body" }
+      let comment = emptyCommentCreate { ticketCommentCreateBody = Just "A body" }
       let ticket = TicketCreate (Just "A subject") comment Nothing
       run subdomain username password (`createTicket` ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
 
     it "responds okay without a subject" $ do
       (subdomain, username, password) <- Zendesk.env
-      let comment = emptyCommentCreate { ticketCommentCreate_body = Just "A body" }
+      let comment = emptyCommentCreate { ticketCommentCreateBody = Just "A body" }
       let ticket = TicketCreate Nothing comment Nothing
       run subdomain username password (`createTicket` ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
 
     it "can create a private ticket (with private comment)" $ do
       (subdomain, username, password) <- Zendesk.env
-      let comment = emptyCommentCreate {
-          ticketCommentCreate_body = Just "Wilma Flintstone, steven+wilma@steshaw.org, Awesome Jobs"
-        , ticketCommentCreate_public = Just False
-        }
       let ticket = TicketCreate {
-          ticketCreate_subject = Just "Awesome Jobs — Betterteam trial"
-        , ticketCreate_comment = comment
-        , ticketCreate_requester = Just Requester {
-              requester_localeId = Nothing
-            , requester_name = Just "Wilma Flintstone"
-            , requester_email = Just "steven+wilma@steshaw.org"
+          ticketCreateSubject = Just "Awesome Company — Trial"
+        , ticketCreateComment = emptyCommentCreate {
+            ticketCommentCreateHtmlBody = Just
+              "Wilma Flintstone at <b>Awesome Company</b> signed up for a trial"
+          , ticketCommentCreatePublic = Just False
+          }
+        , ticketCreateRequester = Just Requester {
+              requesterLocaleId = Nothing
+            , requesterName = Just "Wilma Flintstone"
+            , requesterEmail = Just "steven+wilma@steshaw.org"
           }
         }
       Aeson.toJSON ticket `shouldBe` cannedTicket
