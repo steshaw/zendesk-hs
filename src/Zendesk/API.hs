@@ -70,8 +70,10 @@ aesonOptions fieldLabelModifier = defaultOptions
   , omitNothingFields = True
   }
 
+camelToSnake = Case.toSnakeCase . Case.fromCamelCase
+
 toField prefix fieldName = case List.stripPrefix prefix fieldName of
-  Just s -> Case.toSnakeCase . Case.fromCamelCase $ s
+  Just s -> camelToSnake s
   _      -> error $ unlines
     [ "Error in toField"
     , "prefix='" <> prefix <> "'"
