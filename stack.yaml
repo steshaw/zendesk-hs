@@ -2,6 +2,5 @@ flags: {}
 extra-package-dbs: []
 packages:
 - '.'
-extra-deps:
-- case-conversion-0.2
+extra-deps: []
 resolver: lts-8.5

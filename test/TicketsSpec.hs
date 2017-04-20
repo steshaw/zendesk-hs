@@ -8,9 +8,8 @@ import Data.Aeson.QQ (aesonQQ)
 import Zendesk
 
 import Test.Hspec
-import Test.Hspec.Wai
-import Test.Hspec.Wai.JSON (json)
 
+emptyCommentCreate :: TicketCommentCreate
 emptyCommentCreate = TicketCommentCreate
   { ticketCommentCreateBody = Nothing
   , ticketCommentCreateHtmlBody = Nothing

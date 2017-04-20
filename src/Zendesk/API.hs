@@ -8,15 +8,14 @@ module Zendesk.API where
 
 import Data.Aeson
 import Data.Aeson.TH
+import Data.Aeson.Types (camelTo2)
 import Data.Int (Int64)
-import qualified Data.Char as Char
 import qualified Data.List as List
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import GHC.Generics (Generic)
 import Servant
-import qualified Text.CaseConversion as Case
 
 type Id = Int64
 
@@ -65,13 +64,16 @@ data User = User
   }
   deriving (Show, Eq, Generic)
 
-aesonOptions fieldLabelModifier = defaultOptions
-  { fieldLabelModifier = fieldLabelModifier
+aesonOptions :: (String -> String) -> Options
+aesonOptions fieldModifier = defaultOptions
+  { fieldLabelModifier = fieldModifier
   , omitNothingFields = True
   }
 
-camelToSnake = Case.toSnakeCase . Case.fromCamelCase
+camelToSnake :: String -> String
+camelToSnake = camelTo2 '_'
 
+toField :: String -> String -> String
 toField prefix fieldName = case List.stripPrefix prefix fieldName of
   Just s -> camelToSnake s
   _      -> error $ unlines
@@ -81,6 +83,7 @@ toField prefix fieldName = case List.stripPrefix prefix fieldName of
     , "This indicates a programming bug"
     ]
 
+userOptions :: Options
 userOptions = aesonOptions (toField "user")
 
 instance ToJSON User where
@@ -93,6 +96,7 @@ newtype Users = Users
   { usersUsers :: [User] }
   deriving (Show, Eq, Generic)
 
+usersOptions :: Options
 usersOptions = aesonOptions (toField "users")
 
 instance ToJSON Users where
@@ -138,6 +142,7 @@ data TicketCommentCreate = TicketCommentCreate
 consMaybe :: (ToJSON v, KeyValue a) => Text -> Maybe v -> [a] -> [a]
 consMaybe fieldName = maybe id ((:) . (fieldName .=))
 
+ticketCommentCreateOptions :: Options
 ticketCommentCreateOptions = aesonOptions (toField "ticketCommentCreate")
 
 instance ToJSON TicketCommentCreate where
@@ -181,6 +186,7 @@ data TicketCreate = TicketCreate
   }
   deriving (Show, Eq, Generic)
 
+ticketCreateOptions :: Options
 ticketCreateOptions = aesonOptions (toField "ticketCreate")
 
 instance ToJSON TicketCreate where
@@ -233,6 +239,7 @@ data Ticket = Ticket
   }
   deriving (Show, Eq, Generic)
 
+ticketOptions :: Options
 ticketOptions = aesonOptions (toField "ticket")
 
 instance ToJSON Ticket where
@@ -249,6 +256,7 @@ data TicketPage = TicketPage
   }
   deriving (Show, Eq, Generic)
 
+ticketPageOptions :: Options
 ticketPageOptions = aesonOptions (toField "ticketPage")
 
 instance ToJSON TicketPage where
