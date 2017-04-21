@@ -52,9 +52,9 @@ privateTicket = TicketCreate
 ticketsSpec :: Spec
 ticketsSpec = do
   describe "TicketCreate" $ do
-    it "convert to JSON" $ do
+    it "convert to JSON" $
       Aeson.toJSON privateTicket `shouldBe` jsonTicket
-    it "converts from JSON" $ do
+    it "converts from JSON" $
       Aeson.fromJSON jsonTicket `shouldBe` Aeson.Success privateTicket
 
   describe "POST /tickets.json" $ do

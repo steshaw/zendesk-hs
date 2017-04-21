@@ -5,24 +5,28 @@
 
 module Zendesk.Internal.MockServer where
 
-import Zendesk
+import Zendesk.API
 
 import Data.Monoid ((<>))
 import qualified Network.Wai.Handler.Warp as Warp
 import Servant
 
+emptyUser :: User
 emptyUser = User Nothing Nothing Nothing Nothing
 
+issac :: User
 issac = emptyUser
   { userId = Just 1
   , userName = Just "Issac Newton"
   }
 
+albert :: User
 albert = emptyUser
   { userId = Just 2
   , userName = Just "Albert Einstein"
   }
 
+fred :: User
 fred = emptyUser
   { userId = Just 3
   , userName = Just "Fred Flintstone"
@@ -32,6 +36,7 @@ fred = emptyUser
 users :: [User]
 users = [ issac, albert, fred ]
 
+ticket1 :: Ticket
 ticket1 = Ticket
   { ticketId = Just 1
   , ticketUrl = Nothing
@@ -39,6 +44,7 @@ ticket1 = Ticket
   , ticketDescription = Just "This is a description"
   }
 
+ticket2 :: Ticket
 ticket2 = Ticket
   { ticketId = Just 2
   , ticketUrl = Nothing
@@ -46,8 +52,10 @@ ticket2 = Ticket
   , ticketDescription = Just "This is another description"
   }
 
+exampleTickets :: [Ticket]
 exampleTickets = [ticket1, ticket2]
 
+ticketPage :: TicketPage
 ticketPage = TicketPage
   { ticketPageCount = length exampleTickets
   , ticketPageNextPage = Nothing
@@ -79,9 +87,9 @@ basicAuthServerContext = authCheck :. EmptyContext
 basicAuthServer :: Server API
 basicAuthServer =
   let
-      getUsers user = return (Users users)
-      getTickets user = return ticketPage
-      postTicket user ticketCreate = return (TicketCreateResponse (Just 0))
+      getUsers _user = return (Users users)
+      getTickets _user = return ticketPage
+      postTicket _user _ticketCreate = return (TicketCreateResponse (Just 0))
   in     getUsers
     :<|> getTickets
     :<|> postTicket
@@ -92,6 +100,7 @@ server = basicAuthServer
 app :: Application
 app = serveWithContext api basicAuthServerContext server
 
+port :: Int
 port = 8080
 
 -- | Start the mock server.
