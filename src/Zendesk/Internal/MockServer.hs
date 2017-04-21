@@ -42,6 +42,7 @@ ticket1 = Ticket
   , ticketUrl = Nothing
   , ticketSubject = Just "This is a subject"
   , ticketDescription = Just "This is a description"
+  , ticketTags = Nothing
   }
 
 ticket2 :: Ticket
@@ -50,6 +51,7 @@ ticket2 = Ticket
   , ticketUrl = Nothing
   , ticketSubject = Just "This is another subject"
   , ticketDescription = Just "This is another description"
+  , ticketTags = Nothing
   }
 
 exampleTickets :: [Ticket]

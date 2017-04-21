@@ -29,7 +29,8 @@ jsonTicket = [aesonQQ|
     "requester": {
       "email": "steven+wilma@steshaw.org",
       "name": "Wilma Flintstone"
-    }
+    },
+    "tags": ["foo", "bar"]
   }
 }
 |]
@@ -47,6 +48,7 @@ privateTicket = TicketCreate
       , requesterName = Just "Wilma Flintstone"
       , requesterEmail = Just "steven+wilma@steshaw.org"
     }
+  , ticketCreateTags = Just ["foo", "bar"]
   }
 
 ticketsSpec :: Spec
@@ -62,14 +64,24 @@ ticketsSpec = do
     it "responds okay with a subject" $ do
       (subdomain, username, password) <- Zendesk.env
       let comment = emptyCommentCreate { ticketCommentCreateBody = Just "A body" }
-      let ticket = TicketCreate (Just "A subject") comment Nothing
+      let ticket = TicketCreate
+            { ticketCreateSubject = Just "A subject"
+            , ticketCreateComment = comment
+            , ticketCreateRequester = Nothing
+            , ticketCreateTags = Nothing
+            }
       run subdomain username password (`createTicket` ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
 
     it "responds okay without a subject" $ do
       (subdomain, username, password) <- Zendesk.env
       let comment = emptyCommentCreate { ticketCommentCreateBody = Just "A body" }
-      let ticket = TicketCreate Nothing comment Nothing
+      let ticket = TicketCreate
+            { ticketCreateSubject = Nothing
+            , ticketCreateComment = comment
+            , ticketCreateRequester = Nothing
+            , ticketCreateTags = Nothing
+            }
       run subdomain username password (`createTicket` ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
 

@@ -179,6 +179,7 @@ data TicketCreate = TicketCreate
   { ticketCreateSubject :: Maybe Text
   , ticketCreateComment :: TicketCommentCreate
   , ticketCreateRequester :: Maybe Requester
+  , ticketCreateTags :: Maybe [Text]
 -- requester_id	The numeric ID of the user asking for support through the ticket
 -- submitter_id	The numeric ID of the user submitting the ticket
 -- assignee_id	The numeric ID of the agent to assign the ticket to
@@ -202,6 +203,7 @@ data Ticket = Ticket
   , ticketUrl :: Maybe Text
   , ticketSubject :: Maybe Text
   , ticketDescription :: Maybe Text
+  , ticketTags :: Maybe [Text]
 
 --   Name	Type	Read-only	Mandatory	Comment
 -- id	integer	yes	no	Automatically assigned when creating tickets
