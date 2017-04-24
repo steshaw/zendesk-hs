@@ -7,7 +7,7 @@ username="${ZENDESK_USERNAME}"
 password="${ZENDESK_PASSWORD}"
 
 if [[ $# -eq 0 ]]; then
-  echo "usage: $0 user-id" >&2
+  echo "usage: $0 ticket-id" >&2
   exit 2
 fi
 
