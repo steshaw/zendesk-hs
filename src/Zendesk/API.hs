@@ -175,6 +175,21 @@ data TicketComment = TicketComment
 -- created_at	date	yes	The time the comment was created
   }
 
+data CustomField = CustomField
+  { customFieldId :: Integer
+  , customFieldValue :: Data.Aeson.Value
+  }
+  deriving (Show, Eq, Generic)
+
+customFieldOptions :: Options
+customFieldOptions = aesonOptions (toField "customField")
+
+instance ToJSON CustomField where
+  toJSON = genericToJSON customFieldOptions
+
+instance FromJSON CustomField where
+  parseJSON = genericParseJSON customFieldOptions
+
 data TicketCreate = TicketCreate
   { ticketCreateSubject :: Maybe Text
   , ticketCreateComment :: TicketCommentCreate
@@ -184,6 +199,7 @@ data TicketCreate = TicketCreate
 -- submitter_id	The numeric ID of the user submitting the ticket
 -- assignee_id	The numeric ID of the agent to assign the ticket to
 -- group_id	The numeric ID of the group to assign the ticket to
+  , ticketCreateCustomFields :: [CustomField]
   }
   deriving (Show, Eq, Generic)
 

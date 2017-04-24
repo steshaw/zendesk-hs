@@ -30,7 +30,13 @@ jsonTicket = [aesonQQ|
       "email": "steven+wilma@steshaw.org",
       "name": "Wilma Flintstone"
     },
-    "tags": ["foo", "bar"]
+    "tags": ["foo", "bar"],
+    "custom_fields": [
+      {
+        "id": 66783567,
+        "value": "1272"
+      }
+    ]
   }
 }
 |]
@@ -49,6 +55,7 @@ privateTicket = TicketCreate
       , requesterEmail = Just "steven+wilma@steshaw.org"
     }
   , ticketCreateTags = Just ["foo", "bar"]
+  , ticketCreateCustomFields = [CustomField 66783567 "1272"]
   }
 
 ticketsSpec :: Spec
@@ -69,6 +76,7 @@ ticketsSpec = do
             , ticketCreateComment = comment
             , ticketCreateRequester = Nothing
             , ticketCreateTags = Nothing
+            , ticketCreateCustomFields = []
             }
       run subdomain username password (`createTicket` ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
@@ -81,6 +89,7 @@ ticketsSpec = do
             , ticketCreateComment = comment
             , ticketCreateRequester = Nothing
             , ticketCreateTags = Nothing
+            , ticketCreateCustomFields = []
             }
       run subdomain username password (`createTicket` ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
