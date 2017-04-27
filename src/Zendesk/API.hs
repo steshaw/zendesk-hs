@@ -106,6 +106,18 @@ instance FromJSON Users where
   parseJSON = genericParseJSON usersOptions
 
 data TicketType = Problem | Incident | Question | Task
+  deriving (Show, Eq, Generic)
+
+ticketTypeOptions :: Options
+ticketTypeOptions = defaultOptions
+  { constructorTagModifier = camelToSnake
+  }
+
+instance ToJSON TicketType where
+  toJSON = genericToJSON ticketTypeOptions
+
+instance FromJSON TicketType where
+  parseJSON = genericParseJSON ticketTypeOptions
 
 data TicketStatus = New | Open | Pending | Hold | Solved | Closed
 
@@ -200,6 +212,7 @@ data TicketCreate = TicketCreate
 -- assignee_id	The numeric ID of the agent to assign the ticket to
 -- group_id	The numeric ID of the group to assign the ticket to
   , ticketCreateCustomFields :: [CustomField]
+  , ticketCreateType :: Maybe TicketType
   }
   deriving (Show, Eq, Generic)
 

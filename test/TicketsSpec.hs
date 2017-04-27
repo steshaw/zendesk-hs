@@ -36,7 +36,8 @@ jsonTicket = [aesonQQ|
         "id": 66783567,
         "value": "1272"
       }
-    ]
+    ],
+    "type": "task"
   }
 }
 |]
@@ -56,6 +57,7 @@ privateTicket = TicketCreate
     }
   , ticketCreateTags = Just ["foo", "bar"]
   , ticketCreateCustomFields = [CustomField 66783567 "1272"]
+  , ticketCreateType = Just Task
   }
 
 ticketsSpec :: Spec
@@ -77,6 +79,7 @@ ticketsSpec = do
             , ticketCreateRequester = Nothing
             , ticketCreateTags = Nothing
             , ticketCreateCustomFields = []
+            , ticketCreateType = Just Problem
             }
       run subdomain username password (`createTicket` ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
@@ -90,6 +93,7 @@ ticketsSpec = do
             , ticketCreateRequester = Nothing
             , ticketCreateTags = Nothing
             , ticketCreateCustomFields = []
+            , ticketCreateType = Nothing
             }
       run subdomain username password (`createTicket` ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)
