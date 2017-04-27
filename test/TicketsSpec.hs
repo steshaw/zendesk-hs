@@ -4,6 +4,8 @@
 module TicketsSpec (ticketsSpec) where
 
 import qualified Data.Aeson as Aeson
+import Data.Time.Calendar (fromGregorian)
+import Data.Time.Clock (UTCTime(..))
 import Data.Aeson.QQ (aesonQQ)
 import Zendesk
 
@@ -15,6 +17,17 @@ emptyCommentCreate = TicketCommentCreate
   , ticketCommentCreateHtmlBody = Nothing
   , ticketCommentCreatePublic = Nothing
   , ticketCommentCreateAuthorId = Nothing
+  }
+
+emptyTicketCreate :: TicketCreate
+emptyTicketCreate = TicketCreate
+  { ticketCreateSubject = Nothing
+  , ticketCreateComment = emptyCommentCreate
+  , ticketCreateRequester = Nothing
+  , ticketCreateTags = Nothing
+  , ticketCreateCustomFields = []
+  , ticketCreateType = Nothing
+  , ticketCreateDueAt = Nothing
   }
 
 jsonTicket :: Aeson.Value
@@ -37,10 +50,15 @@ jsonTicket = [aesonQQ|
         "value": "1272"
       }
     ],
-    "type": "task"
+    "type": "task",
+    "due_at": "2017-03-31T00:09:30Z"
   }
 }
 |]
+
+dateTime :: Integer -> Int -> Int -> Int -> Int -> UTCTime
+dateTime year month day hour minute =
+  UTCTime (fromGregorian year month day) (fromIntegral hour * 60 + fromIntegral minute)
 
 privateTicket :: TicketCreate
 privateTicket = TicketCreate
@@ -58,6 +76,7 @@ privateTicket = TicketCreate
   , ticketCreateTags = Just ["foo", "bar"]
   , ticketCreateCustomFields = [CustomField 66783567 "1272"]
   , ticketCreateType = Just Task
+  , ticketCreateDueAt = Just (dateTime 2017 03 31 9 30)
   }
 
 ticketsSpec :: Spec
@@ -73,12 +92,9 @@ ticketsSpec = do
     it "responds okay with a subject" $ do
       (subdomain, username, password) <- Zendesk.env
       let comment = emptyCommentCreate { ticketCommentCreateBody = Just "A body" }
-      let ticket = TicketCreate
+      let ticket = emptyTicketCreate
             { ticketCreateSubject = Just "A subject"
             , ticketCreateComment = comment
-            , ticketCreateRequester = Nothing
-            , ticketCreateTags = Nothing
-            , ticketCreateCustomFields = []
             , ticketCreateType = Just Problem
             }
       run subdomain username password (`createTicket` ticket)
@@ -87,13 +103,8 @@ ticketsSpec = do
     it "responds okay without a subject" $ do
       (subdomain, username, password) <- Zendesk.env
       let comment = emptyCommentCreate { ticketCommentCreateBody = Just "A body" }
-      let ticket = TicketCreate
-            { ticketCreateSubject = Nothing
-            , ticketCreateComment = comment
-            , ticketCreateRequester = Nothing
-            , ticketCreateTags = Nothing
-            , ticketCreateCustomFields = []
-            , ticketCreateType = Nothing
+      let ticket = emptyTicketCreate
+            { ticketCreateComment = comment
             }
       run subdomain username password (`createTicket` ticket)
         `shouldReturn` Right (TicketCreateResponse Nothing)

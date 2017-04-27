@@ -123,7 +123,9 @@ data TicketStatus = New | Open | Pending | Hold | Solved | Closed
 
 data TicketPriority = Urgent | High | Normal | Low
 
--- "requester": { "locale_id": 8, "name": "Pablo", "email": "pablito@example.org" }
+-- |
+-- See https://developer.zendesk.com/rest_api/docs/core/tickets#creating-a-ticket-with-a-new-requester
+--
 data Requester = Requester
   { requesterLocaleId :: Maybe Id
   , requesterName :: Maybe Text
@@ -151,9 +153,6 @@ data TicketCommentCreate = TicketCommentCreate
   }
   deriving (Show, Eq, Generic)
 
-consMaybe :: (ToJSON v, KeyValue a) => Text -> Maybe v -> [a] -> [a]
-consMaybe fieldName = maybe id ((:) . (fieldName .=))
-
 ticketCommentCreateOptions :: Options
 ticketCommentCreateOptions = aesonOptions (toField "ticketCommentCreate")
 
@@ -165,6 +164,9 @@ instance FromJSON TicketCommentCreate where
 
 data TicketCommentType = Comment | VoiceComment
 
+-- |
+-- See https://developer.zendesk.com/rest_api/docs/core/ticket_comments#json-format
+--
 data TicketComment = TicketComment
   { ticketCommentId :: Id
   , body :: Text
@@ -173,18 +175,6 @@ data TicketComment = TicketComment
   , public :: Bool
   , authorId :: Id
   , createdAt :: Date
--- Name	Type	Read-only	Comment
--- id	integer	yes	Automatically assigned when the comment is created
--- type	string	yes	Comment or VoiceComment
--- body	string	no	The comment string
--- html_body	string	no	The comment formatted as HTML
--- plain_body	string	yes	The comment as plain text
--- public	boolean	no	true if a public comment; false if an internal note. The initial value set on ticket creation persists for any additional comment unless you change it
--- author_id	integer	no	The id of the comment author
--- attachments	array	yes	Attachments, if any. See Attachment
--- via	object	yes	How the comment was created. See Via Object
--- metadata	object	yes	System information (web client, IP address, etc.)
--- created_at	date	yes	The time the comment was created
   }
 
 data CustomField = CustomField
@@ -202,17 +192,18 @@ instance ToJSON CustomField where
 instance FromJSON CustomField where
   parseJSON = genericParseJSON customFieldOptions
 
+-- |
+-- See https://developer.zendesk.com/rest_api/docs/core/tickets#create-ticket
+-- Particularly https://developer.zendesk.com/rest_api/docs/core/tickets#request-parameters
+--
 data TicketCreate = TicketCreate
   { ticketCreateSubject :: Maybe Text
   , ticketCreateComment :: TicketCommentCreate
   , ticketCreateRequester :: Maybe Requester
   , ticketCreateTags :: Maybe [Text]
--- requester_id	The numeric ID of the user asking for support through the ticket
--- submitter_id	The numeric ID of the user submitting the ticket
--- assignee_id	The numeric ID of the agent to assign the ticket to
--- group_id	The numeric ID of the group to assign the ticket to
   , ticketCreateCustomFields :: [CustomField]
   , ticketCreateType :: Maybe TicketType
+  , ticketCreateDueAt :: Maybe Date
   }
   deriving (Show, Eq, Generic)
 
@@ -227,46 +218,15 @@ instance FromJSON TicketCreate where
     ticket <- wrapper .: "ticket"
     genericParseJSON ticketCreateOptions ticket
 
+-- |
+-- See https://developer.zendesk.com/rest_api/docs/core/tickets#json-format
+--
 data Ticket = Ticket
   { ticketId :: Maybe Id
   , ticketUrl :: Maybe Text
   , ticketSubject :: Maybe Text
   , ticketDescription :: Maybe Text
   , ticketTags :: Maybe [Text]
-
---   Name	Type	Read-only	Mandatory	Comment
--- id	integer	yes	no	Automatically assigned when creating tickets
--- url	string	yes	no	The API url of this ticket
--- external_id	string	no	no	An id you can use to link Zendesk Support tickets to local records
--- type	string	no	no	The type of this ticket, i.e. "problem", "incident", "question" or "task"
--- subject	string	no	no	The value of the subject field for this ticket
--- raw_subject	string	no	no	The dynamic content placeholder, if present, or the "subject" value, if not. See Dynamic Content
--- description	string	yes	no	The first comment on the ticket
--- priority	string	no	no	Priority, defines the urgency with which the ticket should be addressed: "urgent", "high", "normal", "low"
--- status	string	no	no	The state of the ticket, "new", "open", "pending", "hold", "solved", "closed"
--- recipient	string	no	no	The original recipient e-mail address of the ticket
--- requester_id	integer	no	yes	The user who requested this ticket
--- submitter_id	integer	no	no	The user who submitted the ticket; The submitter always becomes the author of the first comment on the ticket.
--- assignee_id	integer	no	no	What agent is currently assigned to the ticket
--- organization_id	integer	no	no	The organization of the requester. You can only specify the ID of an organization associated with the requester. See Organization Memberships
--- group_id	integer	no	no	The group this ticket is assigned to
--- collaborator_ids	array	no	no	Who are currently CC'ed on the ticket
--- forum_topic_id	integer	no	no	The topic this ticket originated from, if any
--- problem_id	integer	no	no	The problem this incident is linked to, if any
--- has_incidents	boolean	yes	no	Is true of this ticket has been marked as a problem, false otherwise
--- due_at	date	no	no	If this is a ticket of type "task" it has a due date. Due date format uses ISO 8601 format.
--- tags	array	no	no	The array of tags applied to this ticket
--- via	Via	yes	no	This object explains how the ticket was created
--- custom_fields	array	no	no	The custom fields of the ticket
--- satisfaction_rating	object	yes	no	The satisfaction rating of the ticket, if it exists, or the state of satisfaction, 'offered' or 'unoffered'
--- sharing_agreement_ids	array	yes	no	The ids of the sharing agreements used for this ticket
--- followup_ids	array	yes	no	The ids of the followups created from this ticket - only applicable for closed tickets
--- ticket_form_id	integer	no	no	The id of the ticket form to render for this ticket - only applicable for enterprise accounts
--- brand_id	integer	no	no	The id of the brand this ticket is associated with - only applicable for enterprise accounts
--- allow_channelback	boolean	yes	no	Is false if channelback is disabled, true otherwise - only applicable for channels framework ticket
--- is_public	boolean	yes	no	Is true if any comments are public, false otherwise
--- created_at	date	yes	no	When this record was created
--- updated_at	date	yes	no	When this record last got updated
   }
   deriving (Show, Eq, Generic)
 
@@ -295,60 +255,6 @@ instance ToJSON TicketPage where
 
 instance FromJSON TicketPage where
   parseJSON = genericParseJSON ticketPageOptions
-
--- Ticket example
-{-
-{
-    "count": 1,
-    "next_page": null,
-    "previous_page": null,
-    "tickets": [
-    {
-        "allow_channelback": false,
-        "assignee_id": 20546299328,
-        "brand_id": 5833508,
-        "collaborator_ids": [],
-        "created_at": "2017-03-22T05:15:46Z",
-        "custom_fields": [],
-        "description": "Hi Steven,\n\nEmails, chats, voicemails, and tweets are captured in Zendesk Support as tickets. Start typing above to respond and click Submit to send. To test how an email becomes a ticket, send a message to support@steshaw.zendesk.com.\n\nCurious about what your customers will see when you reply? Check out this video:\nhttps://demos.zendesk.com/hc/en-us/articles/202341799\n",
-        "due_at": null,
-        "external_id": null,
-        "fields": [],
-        "forum_topic_id": null,
-        "group_id": 39155288,
-        "has_incidents": false,
-        "id": 1,
-        "is_public": true,
-        "organization_id": null,
-        "priority": "normal",
-        "problem_id": null,
-        "raw_subject": "Sample ticket: Meet the ticket",
-        "recipient": null,
-        "requester_id": 20472176027,
-        "satisfaction_rating": null,
-        "sharing_agreement_ids": [],
-        "status": "solved",
-        "subject": "Sample ticket: Meet the ticket",
-        "submitter_id": 20546299328,
-        "tags": [
-            "sample",
-            "support",
-            "zendesk"
-        ],
-        "type": "incident",
-        "updated_at": "2017-03-22T05:50:01Z",
-        "url": "https://steshaw.zendesk.com/api/v2/tickets/1.json",
-        "via": {
-            "channel": "sample_ticket",
-            "source": {
-                "from": {},
-                "rel": null,
-                "to": {}
-            }
-        }
-    }
-  ]
--}
 
 newtype TicketCreateResponse = TicketCreateResponse
   { status :: Maybe Int } -- TODO: replace with real result audit/ticket.

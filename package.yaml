@@ -52,4 +52,5 @@ tests:
       - hspec
       - hspec-wai
       - hspec-wai-json
+      - time
       - wai-extra
