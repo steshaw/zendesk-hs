@@ -4,3 +4,6 @@ packages:
 - '.'
 extra-deps: []
 resolver: lts-8.5
+
+nix:
+  shell-file: stack.nix
