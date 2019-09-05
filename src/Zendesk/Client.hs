@@ -23,7 +23,7 @@ runner :: BaseUrl -> BS.ByteString -> BS.ByteString -> (BasicAuthData -> ClientM
 runner baseUrl username password authenticatedAction = do
   manager <- HttpClient.newManager TLS.tlsManagerSettings
   let basicAuthData = BasicAuthData username password
-  runClientM (authenticatedAction basicAuthData) (ClientEnv manager baseUrl)
+  runClientM (authenticatedAction basicAuthData) (mkClientEnv manager baseUrl)
 
 mockServerBaseUrl :: BaseUrl
 mockServerBaseUrl = BaseUrl Http "localhost" 8080 ""
