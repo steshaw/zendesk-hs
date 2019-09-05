@@ -19,7 +19,7 @@ getUsers
   :<|> getTickets
   :<|> createTicket = client api
 
-runner :: BaseUrl -> BS.ByteString -> BS.ByteString -> (BasicAuthData -> ClientM a) -> IO (Either ServantError a)
+runner :: BaseUrl -> BS.ByteString -> BS.ByteString -> (BasicAuthData -> ClientM a) -> IO (Either ClientError a)
 runner baseUrl username password authenticatedAction = do
   manager <- HttpClient.newManager TLS.tlsManagerSettings
   let basicAuthData = BasicAuthData username password
@@ -37,14 +37,14 @@ runMock
   :: BSC8.ByteString
   -> BSC8.ByteString
   -> (BasicAuthData -> ClientM a)
-  -> IO (Either ServantError a)
+  -> IO (Either ClientError a)
 runMock = runner mockServerBaseUrl
 
 run :: [Char]
        -> BSC8.ByteString
        -> BSC8.ByteString
        -> (BasicAuthData -> ClientM a)
-       -> IO (Either ServantError a)
+       -> IO (Either ClientError a)
 run subdomain = runner (zendeskBaseUrl subdomain)
 
 -- |
