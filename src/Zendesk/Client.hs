@@ -20,10 +20,10 @@ getUsers
   :<|> createTicket = client api
 
 runner :: BaseUrl -> BS.ByteString -> BS.ByteString -> (BasicAuthData -> ClientM a) -> IO (Either ClientError a)
-runner baseUrl username password authenticatedAction = do
-  manager <- HttpClient.newManager TLS.tlsManagerSettings
+runner baseUrl_ username password authenticatedAction = do
+  manager_ <- HttpClient.newManager TLS.tlsManagerSettings
   let basicAuthData = BasicAuthData username password
-  runClientM (authenticatedAction basicAuthData) (mkClientEnv manager baseUrl)
+  runClientM (authenticatedAction basicAuthData) (mkClientEnv manager_ baseUrl_)
 
 mockServerBaseUrl :: BaseUrl
 mockServerBaseUrl = BaseUrl Http "localhost" 8080 ""

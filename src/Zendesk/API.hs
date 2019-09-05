@@ -7,7 +7,6 @@
 module Zendesk.API where
 
 import Data.Aeson
-import Data.Aeson.TH
 import Data.Aeson.Types (camelTo2)
 import Data.Int (Int64)
 import qualified Data.List as List
