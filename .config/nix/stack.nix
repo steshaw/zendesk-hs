@@ -1,3 +1,0 @@
-{ ghc }:
-
-import ./shell.nix

@@ -1,8 +1,6 @@
 with (import <nixpkgs> {});
+{ ghc ? haskell.compiler.ghc822 }:
 
-let
-  ghc = nur.repos.mpickering.ghc.ghc802;
-in
 builtins.trace "ghc.version = ${ghc.version}" haskell.lib.buildStackProject {
   inherit ghc;
   name = "env";

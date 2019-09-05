@@ -1,7 +1,8 @@
-resolver: lts-8.24
+#resolver: lts-9.21
+resolver: lts-10.10
 
 packages:
 - .
 
 nix:
-  shell-file: .config/nix/stack.nix
+  shell-file: .config/nix/shell.nix
