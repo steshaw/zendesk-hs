@@ -1,9 +1,7 @@
-flags: {}
-extra-package-dbs: []
-packages:
-- '.'
-extra-deps: []
 resolver: lts-8.5
 
+packages:
+- .
+
 nix:
-  shell-file: stack.nix
+  shell-file: .config/nix/stack.nix

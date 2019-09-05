@@ -10,4 +10,7 @@ builtins.trace "ghc.version = ${ghc.version}" haskell.lib.buildStackProject {
     haskellPackages.happy
     zlib
   ];
+  shellHook = ''
+    source .config/environment.secret.sh
+  '';
 }
