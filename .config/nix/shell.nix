@@ -1,5 +1,5 @@
 with (import <nixpkgs> {});
-{ ghc ? haskell.compiler.ghc844 }:
+{ ghc ? haskell.compiler.ghc865 }:
 
 builtins.trace "ghc.version = ${ghc.version}" haskell.lib.buildStackProject {
   inherit ghc;
